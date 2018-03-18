@@ -30,7 +30,7 @@ SOTA_CONFIG_AuctionExtension	= 8
 SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
-SOTA_CONFIG_DKPPerRaider	= 10;
+SOTA_CONFIG_DKPPerRaider		= 10;
 SOTA_CONFIG_MinimumStartingBid	= 10;   -- Minimum DKP Starting bid
 
 -- Pane 2:
