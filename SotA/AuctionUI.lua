@@ -25,28 +25,29 @@ local WHISPER_CHANNEL			= "WHISPER"
 
 --	Settings (persisted)
 -- Pane 1:
-SOTA_CONFIG_AuctionTime			= 20
+SOTA_CONFIG_AuctionTime			= 30
 SOTA_CONFIG_AuctionExtension	= 8
-SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
-SOTA_CONFIG_EnableZonecheck		= 1;	-- Enable zone check when doing raid queue DKP
-SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_EnableOSBidding		= 0;	-- Enable MS bidding over OS
+SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
+SOTA_CONFIG_DisableDashboard	= 1;	-- Disable Dashboard in UI (hide it)
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
 local SOTA_CONFIG_DEFAULT_BossDKP = {
-	{ "20Mans",			200 },
-	{ "MoltenCore",		600 },
-	{ "Onyxia",			600 },
-	{ "BlackwingLair",	600 },
-	{ "AQ40",			800 },
-	{ "Naxxramas",		1200 },
-	{ "WorldBosses",	400 }
+	{ "20Mans",			000 },
+	{ "MoltenCore",		400 },
+	{ "Onyxia",			400 },
+	{ "BlackwingLair",	400 },
+	{ "AQ40",			600 },
+	{ "Naxxramas",		600 },
+	{ "WorldBosses",	000 }
 }
 -- Pane 3:
-SOTA_CONFIG_UseGuildNotes		= 0;
-SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
+SOTA_CONFIG_UseGuildNotes		= 1;
+SOTA_CONFIG_MinimumBidStrategy	= 0;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
+SOTA_CONFIG_MinimumStartingBid	= 10;   -- Minimum DKP Starting bid
 
 
 --	State machine:
@@ -1734,6 +1735,7 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionMSoverOSPriority:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
+	ConfigurationFrameOptionMinimumStartingBid:Hide();
 	-- ConfigurationFrame2:
 	ConfigurationFrameOption_20Mans:Hide();
 	ConfigurationFrameOption_MoltenCore:Hide();
@@ -1763,6 +1765,7 @@ function SOTA_OpenConfigurationFrame1()
 	ConfigurationFrameOptionMSoverOSPriority:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
+	ConfigurationFrameOptionMinimumStartingBid:Show();
 	
 	ConfigurationFrame:Show();	
 end
@@ -3541,15 +3544,16 @@ end
 
 function SOTA_GetStartingDKP()
 	-- TODO: Detect current instance (if any) and calculate starting DKP.
-	local startingDKP = 0;
-	local zonetext = GetRealZoneText();
-	local subzone = GetSubZoneText();
-	if not zonetext then
-		zonetext = "";
-	end
-	if not subzone then
-		subzone = ""
-	end
+	-- disabled to set startingDKP to fixed [quakerz]
+	--local startingDKP = 0;
+	--local zonetext = GetRealZoneText();
+	--local subzone = GetSubZoneText();
+	--if not zonetext then
+		--zonetext = "";
+	--end
+	--if not subzone then
+		--subzone = ""
+	--end
 	
 	-- AQ20 and AQ40 share name outside the instance.
 	-- Check the X coordinate to see if we are in AQ20 or AQ40:
@@ -3557,27 +3561,29 @@ function SOTA_GetStartingDKP()
 	--local posX, posY = GetPlayerMapPosition("player");
 	--echo("Y: ".. posY);
 	
-	if zonetext == "Zul'Gurub" or zonetext == "Ruins of Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX >= 0.422)]] then
-		startingDKP = SOTA_GetBossDKPValue("20Mans") / 10;				-- Verified
-	elseif zonetext == "Molten Core" then
-		startingDKP = SOTA_GetBossDKPValue("MoltenCore") / 10;			-- Verified
-	elseif zonetext == "Onyxia's Lair" --[[or (zonetext == "Dustwallow Marsh" and subzone == "Wyrmbog")]] then
-		startingDKP = SOTA_GetBossDKPValue("Onyxia") / 10;				-- Verified
-	elseif zonetext == "Blackwing Lair" then
-		startingDKP = SOTA_GetBossDKPValue("BlackwingLair") / 10;
-	elseif zonetext == "Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX < 0.422)]] then
-		startingDKP = SOTA_GetBossDKPValue("AQ40") / 10;				-- Verified
-	elseif zonetext == "Naxxramas" then
-		startingDKP = SOTA_GetBossDKPValue("Naxxramas") / 10;
-	elseif	zonetext == "Feralas" or zonetext == "Ashenvale" or zonetext == "Azshara" or 
-			zonetext == "Duskwood" or zonetext == "Blasted Lands" or zonetext == "The Hinterlands" then
-		startingDKP = SOTA_GetBossDKPValue("WorldBosses") / 10;
-	else
+	-- disabled to set startingDKP to fixed [quakerz]
+	--if zonetext == "Zul'Gurub" or zonetext == "Ruins of Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX >= 0.422)]] then
+	--	startingDKP = SOTA_GetBossDKPValue("20Mans") / 10;				-- Verified
+	--elseif zonetext == "Molten Core" then
+	--	startingDKP = SOTA_GetBossDKPValue("MoltenCore") / 10;			-- Verified
+	--elseif zonetext == "Onyxia's Lair" --[[or (zonetext == "Dustwallow Marsh" and subzone == "Wyrmbog")]] then
+	--	startingDKP = SOTA_GetBossDKPValue("Onyxia") / 10;				-- Verified
+	--elseif zonetext == "Blackwing Lair" then
+	--	startingDKP = SOTA_GetBossDKPValue("BlackwingLair") / 10;
+	--elseif zonetext == "Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX < 0.422)]] then
+	--	startingDKP = SOTA_GetBossDKPValue("AQ40") / 10;				-- Verified
+	--elseif zonetext == "Naxxramas" then
+	--	startingDKP = SOTA_GetBossDKPValue("Naxxramas") / 10;
+	--elseif	zonetext == "Feralas" or zonetext == "Ashenvale" or zonetext == "Azshara" or 
+	--		zonetext == "Duskwood" or zonetext == "Blasted Lands" or zonetext == "The Hinterlands" then
+	--	startingDKP = SOTA_GetBossDKPValue("WorldBosses") / 10;
+	--else
 		-- Debug:
 		--echo("Unknown zone: ".. zonetext)
-	end	
+	--end	
 
-	return startingDKP;
+	--return startingDKP;
+	return SOTA_CONFIG_MinimumStartingBid;
 end
 
 --[[
@@ -3765,7 +3771,7 @@ function SOTA_HandleCheckbox(checkbox)
 		return;
 	end
 	
-	if checkbox:GetChecked() then		
+	if checkbox:GetChecked() then
 		--	Bid type:
 		--	If checked, then we need to uncheck others in same group:
 		if checkboxname == "ConfigurationFrameOptionMinBidStrategy0" then
@@ -3788,6 +3794,72 @@ function SOTA_HandleCheckbox(checkbox)
 			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 3;			
+		end
+	end
+
+	if not getglobal("ConfigurationFrameOptionMinBidStrategy0"):GetChecked(0) and not getglobal("ConfigurationFrameOptionMinBidStrategy1"):GetChecked(0) and not getglobal("ConfigurationFrameOptionMinBidStrategy2"):GetChecked(0) and not getglobal("ConfigurationFrameOptionMinBidStrategy3"):GetChecked(0) then
+		if SOTA_CONFIG_MinimumBidStrategy == 0 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(1);
+		end
+		if SOTA_CONFIG_MinimumBidStrategy == 1 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(1);
+		end
+		if SOTA_CONFIG_MinimumBidStrategy == 2 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(1);
+		end
+		if SOTA_CONFIG_MinimumBidStrategy == 3 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(1);
+		end
+	end
+end
+
+function SOTA_CheckboxChecker(checkbox)
+	local checkboxname = checkbox:GetName();
+	--echo(string.format("Checkbox: %s", checkboxname))
+
+	--	Enable MS>OS priority:		
+	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
+		checkbox:SetChecked(SOTA_CONFIG_EnableOSBidding);
+		return;
+	end
+		
+	--	Enable RQ Zonecheck:		
+	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
+		checkbox:SetChecked(SOTA_CONFIG_EnableZonecheck);
+		return;
+	end
+
+	--	Disable Dashboard:		
+	if checkboxname == "ConfigurationFrameOptionDisableDashboard" then
+		checkbox:SetChecked(SOTA_CONFIG_DisableDashboard);
+		if SOTA_CONFIG_DisableDashboard then
+			SOTA_CloseDashboard(); 
+		end
+		return;
+	end
+	
+	--	Store DKP in Public Notes:		
+	if checkboxname == "ConfigurationFrameOptionPublicNotes" then
+		checkbox:SetChecked(SOTA_CONFIG_UseGuildNotes);
+		return;
+	end
+	
+	--	Bid type:
+	if checkboxname == "ConfigurationFrameOptionMinBidStrategy0" then
+		if SOTA_CONFIG_MinimumBidStrategy == 0 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(1);
+		end
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy1" then
+		if SOTA_CONFIG_MinimumBidStrategy == 1 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(1);
+		end
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy2" then
+		if SOTA_CONFIG_MinimumBidStrategy == 2 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(1);
+		end
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy3" then
+		if SOTA_CONFIG_MinimumBidStrategy == 3 then
+			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(1);
 		end
 	end
 end
@@ -3937,6 +4009,17 @@ function SOTA_OnOptionMinimumDKPPenaltyChanged(object)
 	end
 	
 	getglobal(object:GetName().."Text"):SetText(string.format("Minimum DKP penalty: %s", valueString))
+end
+
+function SOTA_OnOptionMinimumStartingBidChanged(object)
+	SOTA_CONFIG_MinimumStartingBid = tonumber( getglobal(object:GetName()):GetValue() );
+	
+	local valueString = "".. SOTA_CONFIG_MinimumStartingBid;
+	if SOTA_CONFIG_MinimumStartingBid == 0 then
+		valueString = "(None)";
+	end
+	
+	getglobal(object:GetName().."Text"):SetText(string.format("Minimum DKP Starting Bid: %s", valueString))
 end
 
 function SOTA_OnOptionBossDKPChanged(object)
@@ -4714,14 +4797,15 @@ function SOTA_InitializeConfigSettings()
 
 
 	if SOTA_CONFIG_UseGuildNotes == 1 then
-		getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(1)
+		getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(SOTA_CONFIG_UseGuildNotes);
 	end
 
-	getglobal("ConfigurationFrameOptionMinBidStrategy".. SOTA_CONFIG_MinimumBidStrategy):SetChecked(1)
+	getglobal("ConfigurationFrameOptionMinBidStrategy".. SOTA_CONFIG_MinimumBidStrategy):SetChecked(1);
 	getglobal("ConfigurationFrameOptionDKPStringLength"):SetValue(SOTA_CONFIG_DKPStringLength);
 	getglobal("ConfigurationFrameOptionMinimumDKPPenalty"):SetValue(SOTA_CONFIG_MinimumDKPPenalty);
 	getglobal("ConfigurationFrameOptionAuctionTime"):SetValue(SOTA_CONFIG_AuctionTime);
 	getglobal("ConfigurationFrameOptionAuctionExtension"):SetValue(SOTA_CONFIG_AuctionExtension);
+	getglobal("ConfigurationFrameOptionMinimumStartingBid"):SetValue(SOTA_CONFIG_MinimumStartingBid);
 	
 	SOTA_RefreshBossDKPValues();
 end

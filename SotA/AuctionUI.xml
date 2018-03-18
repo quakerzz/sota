@@ -560,14 +560,14 @@
 	</Frame>
 
 	<!-- Boss DKP slider (config element for Boss DKP)  -->
-	<Slider name="SOTA_BossDKPSlider" minValue="0" maxValue="4000" defaultValue="400" valueStep="100" inherits="OptionsSliderTemplate" virtual="true">
+	<Slider name="SOTA_BossDKPSlider" minValue="0" maxValue="2000" defaultValue="400" valueStep="100" inherits="OptionsSliderTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="300" y="14" />
 		</Size>
 		<Scripts>
 			<OnLoad>
 				getglobal(this:GetName().."Low"):SetText("0")
-				getglobal(this:GetName().."High"):SetText("4000")
+				getglobal(this:GetName().."High"):SetText("2000")
 			</OnLoad>
 			<OnValueChanged>
 				SOTA_OnOptionBossDKPChanged(this);
@@ -1317,7 +1317,7 @@
 					Configuration Frame 1: Auction Timing
 			-->
 			<!-- Auction Timer, nominal time -->
-			<Slider name="ConfigurationFrameOptionAuctionTime" minValue="0" maxValue="60" defaultValue="25" valueStep="1" inherits="OptionsSliderTemplate">
+			<Slider name="ConfigurationFrameOptionAuctionTime" minValue="0" maxValue="60" defaultValue="30" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-124"/>
@@ -1365,6 +1365,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Enable OS bidding (Mainspec over Offspec)")
 					</OnLoad>
 					<OnClick>
@@ -1381,6 +1382,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Enable Raid Queue Zonecheck")
 					</OnLoad>
 					<OnClick>
@@ -1397,6 +1399,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Disable (hide) Dashboard")
 					</OnLoad>
 					<OnClick>
@@ -1404,7 +1407,6 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-
 			<!--
 					Configuration Frame 2: Boss DKP
 			-->
@@ -1464,7 +1466,6 @@
 					</Anchor>
 				</Anchors>
 			</Slider>
-
 			<!--
 				Configuration Frame 3: Misc. DKP
 			-->
@@ -1477,6 +1478,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Store DKP in Public Guild Notes")
 					</OnLoad>
 					<OnClick>
@@ -1493,6 +1495,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("No minimum bid rules")
 					</OnLoad>
 					<OnClick>
@@ -1508,6 +1511,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Minimum increase by 10 DKP")
 					</OnLoad>
 					<OnClick>
@@ -1523,6 +1527,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("Minimum increase by 10%")
 					</OnLoad>
 					<OnClick>
@@ -1538,6 +1543,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
+						SOTA_CheckboxChecker(this)
 						getglobal(this:GetName().."Text"):SetText("GGC Rules (0-200: +10, &gt;200: +50, &gt;1k: +100)")
 					</OnLoad>
 					<OnClick>
@@ -1582,6 +1588,26 @@
 					</OnLoad>
 					<OnValueChanged>
 						SOTA_OnOptionMinimumDKPPenaltyChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<!-- Minimum Starting Bid -->
+			<Slider name="ConfigurationFrameOptionMinimumStartingBid" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-358"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("100")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionMinimumStartingBidChanged(this);
 					</OnValueChanged>
 				</Scripts>
 			</Slider>
