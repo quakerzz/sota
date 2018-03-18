@@ -579,7 +579,7 @@
 	<!-- SotA Dashboard -->
 	<Frame name="DashboardUIFrame" parent="UIParent" toplevel="true" hidden="true">
 		<Size>
-			<AbsDimension x="296" y="80" />
+			<AbsDimension x="336" y="80" />
 		</Size>
 		<Anchors>
 			<Anchor point="TOPLEFT">
@@ -591,7 +591,7 @@
 			<!-- Current item frame -->
 			<Frame name="$parentItem">
 				<Size>
-					<AbsDimension x="296" y="40" />
+					<AbsDimension x="336" y="40" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
@@ -739,6 +739,32 @@
 							</OnClick>
 							<OnEnter>
 								SOTA_ShowDashboardToolTip(this, "Share DKP across Raid and Queue");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<!-- Button 2B: Award DKP per Raider ("Plus") -->
+					<Button name="$parentAwardDKPperRaider" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="300" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\Spell_ChargePositive.blp" />
+						<PushedTexture file="Interface\ICONS\Spell_ChargeNegative.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_AwardBossDKP();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Award DKP to each raider per boss kill");
 							</OnEnter>
 							<OnLeave>
 								SOTA_HideDashboardToolTip(this);
@@ -1407,6 +1433,46 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<!-- DKP Per raider per boss kill -->
+			<Slider name="ConfigurationFrameOptionDKPPerRaider" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-314"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("100")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionDKPPerRaiderChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<!-- Minimum Starting Bid -->
+			<Slider name="ConfigurationFrameOptionMinimumStartingBid" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-358"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("100")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionMinimumStartingBidChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
 			<!--
 					Configuration Frame 2: Boss DKP
 			-->
@@ -1588,26 +1654,6 @@
 					</OnLoad>
 					<OnValueChanged>
 						SOTA_OnOptionMinimumDKPPenaltyChanged(this);
-					</OnValueChanged>
-				</Scripts>
-			</Slider>
-			<!-- Minimum Starting Bid -->
-			<Slider name="ConfigurationFrameOptionMinimumStartingBid" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset x="64" y="-358"/>
-					</Anchor>
-				</Anchors>
-				<Size>
-					<AbsDimension x="250" y="14" />
-				</Size>
-				<Scripts>
-					<OnLoad>
-						getglobal(this:GetName().."Low"):SetText("0")
-						getglobal(this:GetName().."High"):SetText("100")
-					</OnLoad>
-					<OnValueChanged>
-						SOTA_OnOptionMinimumStartingBidChanged(this);
 					</OnValueChanged>
 				</Scripts>
 			</Slider>

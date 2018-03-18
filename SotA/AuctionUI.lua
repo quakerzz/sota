@@ -27,9 +27,11 @@ local WHISPER_CHANNEL			= "WHISPER"
 -- Pane 1:
 SOTA_CONFIG_AuctionTime			= 30
 SOTA_CONFIG_AuctionExtension	= 8
-SOTA_CONFIG_EnableOSBidding		= 0;	-- Enable MS bidding over OS
+SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
-SOTA_CONFIG_DisableDashboard	= 1;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_DKPPerRaider	= 10;
+SOTA_CONFIG_MinimumStartingBid	= 10;   -- Minimum DKP Starting bid
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
@@ -47,7 +49,6 @@ SOTA_CONFIG_UseGuildNotes		= 1;
 SOTA_CONFIG_MinimumBidStrategy	= 0;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
-SOTA_CONFIG_MinimumStartingBid	= 10;   -- Minimum DKP Starting bid
 
 
 --	State machine:
@@ -1735,6 +1736,7 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionMSoverOSPriority:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
+	ConfigurationFrameOptionDKPPerRaider:Hide();
 	ConfigurationFrameOptionMinimumStartingBid:Hide();
 	-- ConfigurationFrame2:
 	ConfigurationFrameOption_20Mans:Hide();
@@ -1765,6 +1767,7 @@ function SOTA_OpenConfigurationFrame1()
 	ConfigurationFrameOptionMSoverOSPriority:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
+	ConfigurationFrameOptionDKPPerRaider:Show();
 	ConfigurationFrameOptionMinimumStartingBid:Show();
 	
 	ConfigurationFrame:Show();	
@@ -2730,6 +2733,42 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 	end
 	return false;
 end
+
+function SOTA_AwardBossDKP()
+	local bossDkp = "".. (SOTA_CONFIG_DKPPerRaider);
+	
+	if SOTA_CanDoDKP(true) then		
+		StaticPopupDialogs["SOTA_POPUP_AWARD_DKP"] = {
+			text = "Award the following DKP to each raider:",
+			hasEditBox = true,
+			maxLetters = 6,
+			button1 = "Award",
+			button2 = "Cancel",
+			OnAccept = function() SOTA_ExcludePlayerFromTransaction(selectedTransactionID, playername)  end,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,			
+			OnShow = function()	
+				local c = getglobal(this:GetName().."EditBox");
+				c:SetText(bossDkp);
+			end,
+			OnAccept = function(self, data)
+				local c = getglobal(this:GetParent():GetName().."EditBox");			
+				SOTA_AwardSelectedBossDKP(c:GetText());
+			end			
+		}
+		StaticPopup_Show("SOTA_POPUP_AWARD_DKP");		
+	end
+end
+
+function SOTA_AwardSelectedBossDKP(text)
+	local dkp = tonumber(text);
+	if dkp then
+		SOTA_Call_AddRaidDKP(dkp);
+	end
+end
+
 
 --[[
 --	Subtract <n> DKP from each raid and queue member.
@@ -4022,6 +4061,17 @@ function SOTA_OnOptionMinimumStartingBidChanged(object)
 	getglobal(object:GetName().."Text"):SetText(string.format("Minimum DKP Starting Bid: %s", valueString))
 end
 
+function SOTA_OnOptionDKPPerRaiderChanged(object)
+	SOTA_CONFIG_DKPPerRaider = tonumber( getglobal(object:GetName()):GetValue() );
+	
+	local valueString = "".. SOTA_CONFIG_DKPPerRaider;
+	if SOTA_CONFIG_DKPPerRaider == 0 then
+		valueString = "(None)";
+	end
+	
+	getglobal(object:GetName().."Text"):SetText(string.format("DKP per raider per boss kill: %s", valueString))
+end
+
 function SOTA_OnOptionBossDKPChanged(object)
 	local slider = object:GetName();
 	local value = tonumber( getglobal(object:GetName()):GetValue() );
@@ -4805,6 +4855,7 @@ function SOTA_InitializeConfigSettings()
 	getglobal("ConfigurationFrameOptionMinimumDKPPenalty"):SetValue(SOTA_CONFIG_MinimumDKPPenalty);
 	getglobal("ConfigurationFrameOptionAuctionTime"):SetValue(SOTA_CONFIG_AuctionTime);
 	getglobal("ConfigurationFrameOptionAuctionExtension"):SetValue(SOTA_CONFIG_AuctionExtension);
+	getglobal("ConfigurationFrameOptionDKPPerRaider"):SetValue(SOTA_CONFIG_DKPPerRaider);
 	getglobal("ConfigurationFrameOptionMinimumStartingBid"):SetValue(SOTA_CONFIG_MinimumStartingBid);
 	
 	SOTA_RefreshBossDKPValues();
