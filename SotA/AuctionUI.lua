@@ -50,6 +50,10 @@ SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +5 DKP, 2: +10 %, 3: G
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
+-- Maximum Bid by Rank
+SocialMaxBid = 50;
+TrialMaxBid = 100;
+
 
 --	State machine:
 local STATE_NONE				= 0
@@ -1218,15 +1222,31 @@ function SOTA_HandlePlayerBid(sender, message)
 
 	if availableDkp < dkp then
 		whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp));
-		return
+		return;
 	end
 	
+	-- only allow bid that are multiples of 5
+	--if SOTA_CONFIG_MinimumBidStrategy == 1 and math.mod(dkp,5) ~= 0 then
+		--whisper(sender, "Your bid must be a multiple of 5 - bid was ignored.");
+		--return;
+	--end
+
 	if Seconds < SOTA_CONFIG_AuctionExtension then
 		Seconds = SOTA_CONFIG_AuctionExtension;
 	end
 	
 	local bidderClass = playerInfo[3];
 	local bidderRank  = playerInfo[4];
+
+	if bidderRank == "Social" and dkp > SocialMaxBid then
+		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid));
+		return;
+	end
+
+	if bidderRank == "Trial Raider" and dkp > TrialMaxBid then
+		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid));
+		return;
+	end
 	
 	if bidtype == 2 then
 		SOTA_rwEcho(string.format("%s is bidding %d Off-spec for %s", sender, dkp, AuctionedItemLink));
