@@ -560,14 +560,14 @@
 	</Frame>
 
 	<!-- Boss DKP slider (config element for Boss DKP)  -->
-	<Slider name="SOTA_BossDKPSlider" minValue="0" maxValue="2000" defaultValue="400" valueStep="100" inherits="OptionsSliderTemplate" virtual="true">
+	<Slider name="SOTA_BossDKPSlider" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="300" y="14" />
 		</Size>
 		<Scripts>
 			<OnLoad>
 				getglobal(this:GetName().."Low"):SetText("0")
-				getglobal(this:GetName().."High"):SetText("2000")
+				getglobal(this:GetName().."High"):SetText("100")
 			</OnLoad>
 			<OnValueChanged>
 				SOTA_OnOptionBossDKPChanged(this);

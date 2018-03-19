@@ -36,13 +36,13 @@ SOTA_CONFIG_MinimumStartingBid	= 30;   -- Minimum DKP Starting bid
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
 local SOTA_CONFIG_DEFAULT_BossDKP = {
-	{ "20Mans",			000 },
-	{ "MoltenCore",		400 },
-	{ "Onyxia",			400 },
-	{ "BlackwingLair",	400 },
-	{ "AQ40",			600 },
-	{ "Naxxramas",		600 },
-	{ "WorldBosses",	000 }
+	{ "20Mans",			10 },
+	{ "MoltenCore",		10 },
+	{ "Onyxia",			10 },
+	{ "BlackwingLair",	10 },
+	{ "AQ40",			15 },
+	{ "Naxxramas",		15 },
+	{ "WorldBosses",	10 }
 }
 -- Pane 3:
 SOTA_CONFIG_UseGuildNotes		= 1;
@@ -1794,7 +1794,7 @@ function SOTA_OpenConfigurationFrame1()
 end
 
 function SOTA_OpenConfigurationFrame2()
-	SOTA_CloseConfigurationElements("Shared DKP per Boss Kill");
+	SOTA_CloseConfigurationElements("DKP per Raider per Boss Kill");
 	-- ConfigurationFrame2:
 	ConfigurationFrameOption_20Mans:Show();
 	ConfigurationFrameOption_MoltenCore:Show();
@@ -2755,7 +2755,7 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 end
 
 function SOTA_AwardBossDKP()
-	local bossDkp = "".. (SOTA_CONFIG_DKPPerRaider);
+	local bossDkp = "".. (SOTA_GetDKPPerBoss());
 	
 	if SOTA_CanDoDKP(true) then		
 		StaticPopupDialogs["SOTA_POPUP_AWARD_DKP"] = {
@@ -3648,6 +3648,52 @@ function SOTA_GetStartingDKP()
 
 	--return startingDKP;
 	return SOTA_CONFIG_MinimumStartingBid;
+end
+
+function SOTA_GetDKPPerBoss()
+	-- TODO: Detect current instance (if any) and calculate starting DKP.
+	-- disabled to set startingDKP to fixed [quakerz]
+	local DKPPerBoss = 0;
+	local zonetext = GetRealZoneText();
+	local subzone = GetSubZoneText();
+	if not zonetext then
+		zonetext = "";
+	end
+	if not subzone then
+		subzone = ""
+	end
+	
+	-- AQ20 and AQ40 share name outside the instance.
+	-- Check the X coordinate to see if we are in AQ20 or AQ40:
+	--SetMapToCurrentZone();
+	--local posX, posY = GetPlayerMapPosition("player");
+	--echo("Y: ".. posY);
+	
+	if zonetext == "Zul'Gurub" or zonetext == "Ruins of Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX >= 0.422)]] then
+		DKPPerBoss = SOTA_GetBossDKPValue("20Mans");				-- Verified
+	elseif zonetext == "Molten Core" then
+		DKPPerBoss = SOTA_GetBossDKPValue("MoltenCore");			-- Verified
+	elseif zonetext == "Onyxia's Lair" --[[or (zonetext == "Dustwallow Marsh" and subzone == "Wyrmbog")]] then
+		DKPPerBoss = SOTA_GetBossDKPValue("Onyxia");				-- Verified
+	elseif zonetext == "Blackwing Lair" then
+		DKPPerBoss = SOTA_GetBossDKPValue("BlackwingLair");
+	elseif zonetext == "Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX < 0.422)]] then
+		DKPPerBoss = SOTA_GetBossDKPValue("AQ40");				-- Verified
+	elseif zonetext == "Naxxramas" then
+		DKPPerBoss = SOTA_GetBossDKPValue("Naxxramas");
+	elseif	zonetext == "Feralas" or zonetext == "Ashenvale" or zonetext == "Azshara" or 
+			zonetext == "Duskwood" or zonetext == "Blasted Lands" or zonetext == "The Hinterlands" then
+		DKPPerBoss = SOTA_GetBossDKPValue("WorldBosses");
+	else
+		-- Debug:
+		--echo("Unknown zone: ".. zonetext)
+	end
+
+	if DKPPerBoss == 0 then
+		DKPPerBoss = SOTA_CONFIG_DKPPerRaider;
+	end
+
+	return DKPPerBoss;
 end
 
 --[[
@@ -4808,6 +4854,7 @@ end
 function SOTA_OnZoneChanged()
 	if SOTA_IsInRaid(true) then
 		local dkp = SOTA_GetStartingDKP();
+		local dkpperboss = SOTA_GetDKPPerBoss();
 		if dkp > 0 then
 			local zonetext = GetRealZoneText();			
 			if zonetext == "Azshara" then
@@ -4819,7 +4866,7 @@ function SOTA_OnZoneChanged()
 			end
 			
 			gEcho(string.format("Instance: "..COLOUR_INTRO.."%s"..COLOUR_CHAT, zonetext));
-			gEcho(string.format("Boss value: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp*10));
+			gEcho(string.format("Boss value: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkpperboss));
 			gEcho(string.format("Minimum bid: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp));
 		end
 
