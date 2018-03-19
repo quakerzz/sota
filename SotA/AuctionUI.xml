@@ -1454,7 +1454,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Minimum Starting Bid -->
-			<Slider name="ConfigurationFrameOptionMinimumStartingBid" minValue="0" maxValue="100" defaultValue="10" valueStep="5" inherits="OptionsSliderTemplate">
+			<Slider name="ConfigurationFrameOptionMinimumStartingBid" minValue="0" maxValue="100" defaultValue="30" valueStep="5" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-358"/>
@@ -1578,7 +1578,7 @@
 				<Scripts>
 					<OnLoad>
 						SOTA_CheckboxChecker(this)
-						getglobal(this:GetName().."Text"):SetText("Minimum increase by 10 DKP")
+						getglobal(this:GetName().."Text"):SetText("Minimum increase by 5 DKP")
 					</OnLoad>
 					<OnClick>
 						SOTA_HandleCheckbox(this);

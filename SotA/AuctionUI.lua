@@ -31,7 +31,7 @@ SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_DKPPerRaider		= 10;
-SOTA_CONFIG_MinimumStartingBid	= 10;   -- Minimum DKP Starting bid
+SOTA_CONFIG_MinimumStartingBid	= 30;   -- Minimum DKP Starting bid
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
@@ -46,7 +46,7 @@ local SOTA_CONFIG_DEFAULT_BossDKP = {
 }
 -- Pane 3:
 SOTA_CONFIG_UseGuildNotes		= 1;
-SOTA_CONFIG_MinimumBidStrategy	= 0;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
+SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +5 DKP, 2: +10 %, 3: GGC rules
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
@@ -3536,8 +3536,13 @@ end
 --
 --	MinBidStrategy
 --
-local function strategy10DKP(dkp)
-	return 10 + dkp;
+-- 10DKP deprecated, switch to +5
+--local function strategy10DKP(dkp)
+	--return 10 + dkp;
+--end
+
+local function strategy5DKP(dkp)
+	return 5 + dkp;
 end
 
 local function strategy10Percent(dkp)
@@ -3667,7 +3672,7 @@ end
 function SOTA_GetMinimumBid(bidtype)
 	local minimumBid = SOTA_GetStartingDKP();
 	if minimumBid == 0 then
-		minimumBid = 10;
+		minimumBid = SOTA_CONFIG_MinimumStartingBid;
 	end
 
 	local highestBid = SOTA_GetHighestBid(bidtype);
@@ -3686,7 +3691,7 @@ function SOTA_GetMinimumBid(bidtype)
 	--echo("BidType="..bidtype ..", MinBid=".. minimumBid ..", strategy=".. SOTA_CONFIG_MinimumBidStrategy);
 
 	if SOTA_CONFIG_MinimumBidStrategy == 1 then
-		minimumBid = strategy10DKP(minimumBid);
+		minimumBid = strategy5DKP(minimumBid);
 	elseif SOTA_CONFIG_MinimumBidStrategy == 2 then
 		minimumBid = strategy10Percent(minimumBid);
 	elseif SOTA_CONFIG_MinimumBidStrategy == 3 then
