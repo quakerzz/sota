@@ -1042,7 +1042,7 @@ function SOTA_CheckAuctionState()
 	if state == STATE_AUCTION_RUNNING then
 		local secs = SOTA_GetSecondCounter();
 		if secs == SOTA_CONFIG_AuctionTime then
-			SOTA_rwEcho(string.format("Auction open for %s", AuctionedItemLink));
+			SOTA_rwEcho(string.format("Auction open for %s, %d seconds left", AuctionedItemLink, secs));
 			SOTA_rwEcho(string.format("/w %s bid <your bid>", UnitName("Player")))
 			SOTA_rwEcho(string.format("Minimum bid: %d DKP", SOTA_GetMinimumBid()));
 		end
@@ -2892,7 +2892,7 @@ function SOTA_ShareBossDKP()
 			whileDead = true,
 			hideOnEscape = true,
 			preferredIndex = 3,			
-			OnShow = function()	
+			OnShow = function()
 				local c = getglobal(this:GetName().."EditBox");
 				c:SetText(bossDkp);
 			end,
