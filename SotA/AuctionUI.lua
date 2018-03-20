@@ -1746,7 +1746,8 @@ end
 
 function SOTA_OpenConfigurationUI()
 	SOTA_RefreshBossDKPValues();
-	SOTA_OpenConfigurationFrame1()
+	SOTA_RefreshSliders();
+	SOTA_OpenConfigurationFrame1();
 end
 
 function SOTA_CloseConfigurationElements(headline)
@@ -4182,6 +4183,11 @@ function SOTA_RefreshBossDKPValues()
 	getglobal("ConfigurationFrameOption_AQ40"):SetValue(SOTA_GetBossDKPValue("AQ40"));
 	getglobal("ConfigurationFrameOption_Naxxramas"):SetValue(SOTA_GetBossDKPValue("Naxxramas"));
 	getglobal("ConfigurationFrameOption_WorldBosses"):SetValue(SOTA_GetBossDKPValue("WorldBosses"));
+end
+
+function SOTA_RefreshSliders()
+	getglobal("ConfigurationFrameOptionDKPPerRaider"):SetValue(SOTA_CONFIG_DKPPerRaider);
+	getglobal("ConfigurationFrameOptionMinimumStartingBid"):SetValue(SOTA_CONFIG_MinimumStartingBid);
 end
 
 function SOTA_GetBossDKPValue(instancename)
