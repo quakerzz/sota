@@ -4896,10 +4896,10 @@ end
 
 function SOTA_InitializeConfigSettings()
     if not SOTA_CONFIG_UseGuildNotes then
-		SOTA_CONFIG_UseGuildNotes = 0;
+		SOTA_CONFIG_UseGuildNotes = 1;
     end
     if not SOTA_CONFIG_MinimumBidStrategy then
-		SOTA_CONFIG_MinimumBidStrategy = 0;
+		SOTA_CONFIG_MinimumBidStrategy = 1;
     end
 	if not SOTA_CONFIG_DKPStringLength then
 		SOTA_CONFIG_DKPStringLength = 5;
