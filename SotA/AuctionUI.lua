@@ -51,7 +51,7 @@ SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 -- Maximum Bid by Rank
-SocialMaxBid = 50;
+SocialMaxBid = 30;
 TrialMaxBid = 100;
 
 
