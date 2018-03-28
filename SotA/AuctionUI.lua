@@ -244,11 +244,16 @@ local function addonEcho(msg)
 	SendAddonMessage(SOTA_MESSAGE_PREFIX, msg, "RAID")
 end
 
-local function whisper(receiver, msg)
-	if receiver == UnitName("player") then
-		gEcho(msg);
+local function whisper(receiver, msg, identifier)
+	identifier = identifier or ""
+	if identifier == "DKPAuctionBidder" then
+		SendAddonMessage("SOTA_reply_DKPAuctionBidder", msg, "RAID")
 	else
-		SendChatMessage(msg, WHISPER_CHANNEL, nil, receiver);
+		if receiver == UnitName("player") then
+			gEcho(msg);
+		else
+			SendChatMessage(msg, WHISPER_CHANNEL, nil, receiver);
+		end
 	end
 end
 
@@ -1156,10 +1161,11 @@ end
 --	Syntax: /sota bid|ms|os <dkp>|min|max
 --	Since 0.0.1
 --]]
-function SOTA_HandlePlayerBid(sender, message)
+function SOTA_HandlePlayerBid(sender, message, identifier)
+	identifier = identifier or ""
 	local playerInfo = SOTA_GetGuildPlayerInfo(sender);
 	if not playerInfo then
-		whisper(sender, "You need to be in the guild to do bidding!");
+		whisper(sender, "You need to be in the guild to do bidding!", identifier);
 		return;
 	end
 
@@ -1191,7 +1197,7 @@ function SOTA_HandlePlayerBid(sender, message)
 
 	local minimumBid = SOTA_GetMinimumBid(bidtype);
 	if not minimumBid then
-		whisper(sender, "You cannot OS bid if an MS bid is already made.");
+		whisper(sender, "You cannot OS bid if an MS bid is already made.", identifier);
 		return;
 	end
 	
@@ -1210,18 +1216,18 @@ function SOTA_HandlePlayerBid(sender, message)
 	end	
 
 	if not (AuctionState == STATE_AUCTION_RUNNING) then
-		whisper(sender, "There is currently no auction running - bid was ignored.");
+		whisper(sender, "There is currently no auction running - bid was ignored.", identifier);
 		return;
 	end	
 
 	dkp = 1 * dkp
 	if dkp < minimumBid then
-		whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid));
+		whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
 		return;
 	end
 
 	if availableDkp < dkp then
-		whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp));
+		whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
 		return;
 	end
 	
@@ -1239,12 +1245,12 @@ function SOTA_HandlePlayerBid(sender, message)
 	local bidderRank  = playerInfo[4];
 
 	if bidderRank == "Social" and dkp > SocialMaxBid then
-		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid));
+		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid), identifier);
 		return;
 	end
 
 	if bidderRank == "Trial Raider" and dkp > TrialMaxBid then
-		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid));
+		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid), identifier);
 		return;
 	end
 	
@@ -1255,7 +1261,7 @@ function SOTA_HandlePlayerBid(sender, message)
 	end
 	
 
-	SOTA_RegisterBid(sender, dkp, bidtype, bidderClass, bidderRank);
+	SOTA_RegisterBid(sender, dkp, bidtype, bidderClass, bidderRank, identifier);
 	
 		
 	-- Checks to perform now:
@@ -1276,11 +1282,12 @@ end
 
 
 
-function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank)
+function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank, identifier)
+	identifier = identifier or ""
 	if bidtype == 2 then
-		whisper(playername, string.format("Your Off-spec bid of %d DKP has been registered.", bid) );
+		whisper(playername, string.format("Your Off-spec bid of %d DKP has been registered.", bid), identifier);
 	else
-		whisper(playername, string.format("Your bid of %d DKP has been registered.", bid) );
+		whisper(playername, string.format("Your bid of %d DKP has been registered.", bid), identifier);
 	end
 
 	IncomingBidsTable = SOTA_RenumberTable(IncomingBidsTable);
@@ -4853,6 +4860,9 @@ function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 		else
 			--gEcho("Unknown command, raw msg="..msg)
 		end
+	end
+	if prefix == "DKPAuctionBidder" then
+		SOTA_HandlePlayerBid(sender, msg, "DKPAuctionBidder")
 	end
 end
 
