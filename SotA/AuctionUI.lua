@@ -247,7 +247,7 @@ end
 local function whisper(receiver, msg, identifier)
 	identifier = identifier or ""
 	if identifier == "DKPAuctionBidder" then
-		SendAddonMessage("SOTA_reply_DKPAuctionBidder", msg, "RAID")
+		SendAddonMessage("SOTA_reply_DKPAuctionBidder", receiver ..msg, "RAID")
 	else
 		if receiver == UnitName("player") then
 			gEcho(msg);
@@ -772,6 +772,7 @@ function SOTA_SetMasterState(mastername, masterstate)
 	--echo(string.format("Master: %s, state= %d", mastername, CLIENT_STATE));
 
 	getglobal("SOTA_MasterName"):SetText(mastername);
+	SendAddonMessage(SOTA_MESSAGE_PREFIX,"SOTAMASTER", "RAID")
 end
 
 --[[
