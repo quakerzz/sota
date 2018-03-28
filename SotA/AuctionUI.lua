@@ -2431,6 +2431,7 @@ function SOTA_CancelAuction()
 	end
 	
 	AuctionUIFrame:Hide();
+	SendAddonMessage(SOTA_MESSAGE_PREFIX,"SOTA_AUCTION_CANCEL", "RAID")
 end
 
 
