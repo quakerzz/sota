@@ -963,6 +963,7 @@ function SOTA_StartAuction(itemLink)
 	SOTA_OpenAuctionUI();
 	
 	SOTA_SetAuctionState(STATE_AUCTION_RUNNING, SOTA_CONFIG_AuctionTime);
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START", "RAID")
 end
 
 
@@ -1312,6 +1313,7 @@ function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank, identifie
 	--end
  
 	SOTA_UpdateBidElements();
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "HIGHEST_BID" .." " ..IncomingBidsTable[1][2]  .." " ..IncomingBidsTable[1][1], "RAID")
 end
 
 
@@ -2413,6 +2415,7 @@ function SOTA_FinishAuction()
 	end
 	
 	SOTA_RefreshButtonStates();
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_FINISH", "RAID")
 end
 
 --[[
