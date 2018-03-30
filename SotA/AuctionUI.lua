@@ -964,7 +964,7 @@ function SOTA_StartAuction(itemLink)
 	SOTA_OpenAuctionUI();
 	
 	SOTA_SetAuctionState(STATE_AUCTION_RUNNING, SOTA_CONFIG_AuctionTime);
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START", "RAID")
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime, "RAID")
 end
 
 
@@ -1058,18 +1058,25 @@ function SOTA_CheckAuctionState()
 			SOTA_rwEcho(string.format("Minimum bid: %d DKP", SOTA_GetMinimumBid()));
 		end
 		
+		if math.mod(secs, 5) == 0 then
+			SendAddonMessage("SOTA_TIMER_SYNC", secs, "RAID")
+		end
+
 		if secs == 10 then
 			SOTA_rwEcho(string.format("10 seconds left for %s", AuctionedItemLink));
 			SOTA_rwEcho(string.format("/w %s bid <your bid>", UnitName("Player")));
 		end
 		if secs == 3 then
 			SOTA_rwEcho("3 seconds left");
+			SendAddonMessage("SOTA_TIMER_SYNC", secs, "RAID")
 		end
 		if secs == 2 then
 			SOTA_rwEcho("2 seconds left");
+			SendAddonMessage("SOTA_TIMER_SYNC", secs, "RAID")
 		end
 		if secs == 1 then
 			SOTA_rwEcho("1 second left");
+			SendAddonMessage("SOTA_TIMER_SYNC", secs, "RAID")
 		end
 		if secs < 1 then
 			-- Time is up - complete the auction:
@@ -1241,6 +1248,7 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 
 	if Seconds < SOTA_CONFIG_AuctionExtension then
 		Seconds = SOTA_CONFIG_AuctionExtension;
+		SendAddonMessage("SOTA_TIMER_SYNC", Seconds, "RAID")
 	end
 	
 	local bidderClass = playerInfo[3];
@@ -1314,7 +1322,7 @@ function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank, identifie
 	--end
  
 	SOTA_UpdateBidElements();
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "HIGHEST_BID" .." " ..IncomingBidsTable[1][2]  .." " ..IncomingBidsTable[1][1], "RAID")
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "HIGHEST_BID" .." " ..IncomingBidsTable[1][2]  .." " ..IncomingBidsTable[1][1] .." " ..IncomingBidsTable[1][4], "RAID")
 end
 
 
@@ -2389,10 +2397,16 @@ function SOTA_PauseAuction()
 	
 	if state == STATE_AUCTION_PAUSED then
 		SOTA_SetAuctionState(STATE_AUCTION_RUNNING, secs + SOTA_CONFIG_AuctionExtension);
+		SendAddonMessage("SOTA_TIMER_SYNC", secs + SOTA_CONFIG_AuctionExtension, "RAID")
 		SOTA_rwEcho("Auction have been Resumed");
 	end
 
 	SOTA_RefreshButtonStates();
+	if SOTA_GetAuctionState() == STATE_AUCTION_PAUSED then
+		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_PAUSE", "RAID")
+	elseif SOTA_GetAuctionState() == STATE_AUCTION_RUNNING then
+		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_RESUME " ..secs, "RAID")
+	end
 end
 
 
