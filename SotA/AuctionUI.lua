@@ -2392,21 +2392,18 @@ function SOTA_PauseAuction()
 	
 	if state == STATE_AUCTION_RUNNING then
 		SOTA_SetAuctionState(STATE_AUCTION_PAUSED, secs);
+		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_PAUSE", "RAID")
 		SOTA_rwEcho("Auction have been Paused");
 	end
 	
 	if state == STATE_AUCTION_PAUSED then
 		SOTA_SetAuctionState(STATE_AUCTION_RUNNING, secs + SOTA_CONFIG_AuctionExtension);
+		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_RESUME " ..(secs + SOTA_CONFIG_AuctionExtension), "RAID")
 		SendAddonMessage("SOTA_TIMER_SYNC", secs + SOTA_CONFIG_AuctionExtension, "RAID")
 		SOTA_rwEcho("Auction have been Resumed");
 	end
 
 	SOTA_RefreshButtonStates();
-	if SOTA_GetAuctionState() == STATE_AUCTION_PAUSED then
-		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_PAUSE", "RAID")
-	elseif SOTA_GetAuctionState() == STATE_AUCTION_RUNNING then
-		SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_RESUME " ..secs, "RAID")
-	end
 end
 
 
