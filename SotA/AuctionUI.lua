@@ -964,7 +964,7 @@ function SOTA_StartAuction(itemLink)
 	SOTA_OpenAuctionUI();
 	
 	SOTA_SetAuctionState(STATE_AUCTION_RUNNING, SOTA_CONFIG_AuctionTime);
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime, "RAID")
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime .." " ..itemId, "RAID")
 end
 
 
