@@ -771,26 +771,30 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
-
 				</Frames>
 
 				<Layers>
 					<Layer level="ARTWORK">
-						<FontString inherits="GameFontNormal" text="SOTA Master:">
+						<FontString name="SOTA_MasterText" inherits="GameFontNormal" text="SOTA Master:">
+							<Size>
+								<AbsDimension x="80" y="16"/>
+							</Size>
 							<Anchors>
 								<Anchor point="TOPLEFT">
 									<Offset>
-										<AbsDimension x="5" y="10" />
+										<AbsDimension x="0" y="10" />
 									</Offset>
 								</Anchor>
 							</Anchors>
 						</FontString>
-						<FontString name="SOTA_MasterName" inherits="GameFontNormal" text="(none)">
+						<FontString name="SOTA_MasterName" justifyH="LEFT" inherits="GameFontNormal" text="(none)">
+							<Size>
+								<AbsDimension x="100" y="16"/>
+							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT">
+								<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="SOTA_MasterText">
 									<Offset>
-										<AbsDimension x="78" y="10" />
+										<AbsDimension x="0" y="0" />
 									</Offset>
 								</Anchor>
 							</Anchors>
