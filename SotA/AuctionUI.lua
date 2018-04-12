@@ -868,7 +868,7 @@ end
 --
 
 function SOTA_GetSecondCounter()
-	return Seconds;
+	return tonumber(Seconds);
 end
 
 function SOTA_GetAuctionState()
@@ -876,9 +876,10 @@ function SOTA_GetAuctionState()
 end
 
 function SOTA_SetAuctionState(auctionState, seconds)
-	if not seconds then
-		seconds = 0;
-	end
+	-- if not seconds then
+	-- 	seconds = 0;
+	-- end
+	seconds = seconds or 0
 	AuctionState = auctionState;
 	SOTA_setSecondCounter(seconds);
 end
@@ -962,18 +963,15 @@ function SOTA_StartAuction(itemLink)
 	IncomingBidsTable = { };
 	SOTA_UpdateBidElements();
 	SOTA_OpenAuctionUI();
-	
 	SOTA_SetAuctionState(STATE_AUCTION_RUNNING, SOTA_CONFIG_AuctionTime);
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime .." " ..itemId, "RAID")
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime .." " ..itemId .." " ..SOTA_CONFIG_MinimumStartingBid, "RAID")
 end
-
-
 
 local GuildRefreshTimer = 0;
 local EventTime = 0;
 local SOTA_TimerTick = 0;
 local SecondTimer = 0;
-local Secounds = 0;
+Seconds = 0;
 
 --	Timer job: { method, duration }
 local SOTA_GeneralTimers = { }
@@ -1217,7 +1215,11 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 		if arg == "min" then
 			dkp = minimumBid;
 		elseif arg == "max" then
-			dkp = availableDkp;
+			if availableDkp < SOTA_CONFIG_MinimumStartingBid then
+				dkp = SOTA_CONFIG_MinimumStartingBid
+			else
+				dkp = availableDkp;
+			end
 		else
 			-- This was not following a legal format; skip message
 			return;
@@ -1230,14 +1232,21 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	end	
 
 	dkp = 1 * dkp
-	if dkp < minimumBid then
-		whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
-		return;
-	end
+	if minimumBid ~= SOTA_CONFIG_MinimumStartingBid then
+		if dkp < minimumBid then
+			whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
+			return;
+		end
 
-	if availableDkp < dkp then
-		whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
-		return;
+		if availableDkp <= dkp then
+			if availableDkp >= 0 then
+				whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
+				return;
+			else
+				whisper(sender, string.format("You have negative DKP: %d - you can only bid the minimum price.", availableDkp), identifier);
+				return;
+			end
+		end
 	end
 	
 	-- only allow bid that are multiples of 5
@@ -2348,6 +2357,7 @@ function SOTA_AcceptSelectedPlayerBid()
 	end
 
 	SOTA_AcceptBid(selectedBid[1], selectedBid[2]);
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_ACCEPTED_BID" .." " ..selectedBid[1] .." " ..selectedBid[2])
 end
 
 
@@ -5001,8 +5011,8 @@ function SOTA_OnLoad()
     this:RegisterEvent("CHAT_MSG_WHISPER");
     this:RegisterEvent("CHAT_MSG_ADDON");
 
-    
-    SOTA_SetAuctionState(STATE_NONE);
+	SOTA_SetAuctionState(STATE_NONE);
+
     SOTA_RefreshRaidRoster();
 	SOTA_InitializeTableElements(); 
 	

@@ -579,7 +579,7 @@
 	<!-- SotA Dashboard -->
 	<Frame name="DashboardUIFrame" parent="UIParent" toplevel="true" hidden="true">
 		<Size>
-			<AbsDimension x="336" y="80" />
+			<AbsDimension x="205" y="80" />
 		</Size>
 		<Anchors>
 			<Anchor point="TOPLEFT">
@@ -591,7 +591,7 @@
 			<!-- Current item frame -->
 			<Frame name="$parentItem">
 				<Size>
-					<AbsDimension x="336" y="40" />
+					<AbsDimension x="205" y="40" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
@@ -612,7 +612,7 @@
 				<!-- "buttons" -->
 				<Frames>
 					<!-- Button 1A: Raid Queue ("Prayer of Spirit") -->
-					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
@@ -639,14 +639,14 @@
 					</Button>
 
 					<!-- Button 2A: Transaction Log ("Note") -->
-					<Button name="$parentTransactionLogButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentTransactionLogButton" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
 						<Anchors>
 							<Anchor point="LEFT">
 								<Offset>
-									<AbsDimension x="40" y="0" />
+									<AbsDimension x="37" y="0" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -666,14 +666,14 @@
 					</Button>
 
 					<!-- Button 3A: Configuration ("Gear") -->
-					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
 						<Anchors>
 							<Anchor point="LEFT">
 								<Offset>
-									<AbsDimension x="80" y="0" />
+									<AbsDimension x="70" y="0" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -693,14 +693,14 @@
 					</Button>
 
 					<!-- Button 1B: Make Master ("Kings") -->
-					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
 						<Anchors>
 							<Anchor point="LEFT">
 								<Offset>
-									<AbsDimension x="220" y="0" />
+									<AbsDimension x="103" y="0" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -720,14 +720,14 @@
 					</Button>
 
 					<!-- Button 2B: Share DKP ("Coins") -->
-					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
 						<Anchors>
 							<Anchor point="LEFT">
 								<Offset>
-									<AbsDimension x="260" y="0" />
+									<AbsDimension x="136" y="0" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -746,14 +746,14 @@
 						</Scripts>
 					</Button>
 					<!-- Button 2B: Award DKP per Raider ("Plus") -->
-					<Button name="$parentAwardDKPperRaider" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+					<Button name="$parentAwardDKPperRaider" inherits="ActionButtonTemplate" frameStrata="MEDIUM" hidden="false">
 						<Size>
 							<AbsDimension x="32" y="32" />
 						</Size>
 						<Anchors>
 							<Anchor point="LEFT">
 								<Offset>
-									<AbsDimension x="300" y="0" />
+									<AbsDimension x="169" y="0" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -779,18 +779,18 @@
 					<Layer level="ARTWORK">
 						<FontString inherits="GameFontNormal" text="SOTA Master:">
 							<Anchors>
-								<Anchor point="LEFT">
+								<Anchor point="TOPLEFT">
 									<Offset>
-										<AbsDimension x="120" y="10" />
+										<AbsDimension x="5" y="10" />
 									</Offset>
 								</Anchor>
 							</Anchors>
 						</FontString>
 						<FontString name="SOTA_MasterName" inherits="GameFontNormal" text="(none)">
 							<Anchors>
-								<Anchor point="LEFT">
+								<Anchor point="TOPLEFT">
 									<Offset>
-										<AbsDimension x="120" y="-8" />
+										<AbsDimension x="78" y="10" />
 									</Offset>
 								</Anchor>
 							</Anchors>
