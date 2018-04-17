@@ -32,6 +32,8 @@ SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_DKPPerRaider		= 10;
 SOTA_CONFIG_MinimumStartingBid	= 30;   -- Minimum DKP Starting bid
+SOTA_CONFIG_TimeFramePerDKP 	= 15;
+SOTA_CONFIG_DKPPerTime			= 20;
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
@@ -884,10 +886,6 @@ function SOTA_SetAuctionState(auctionState, seconds)
 	SOTA_setSecondCounter(seconds);
 end
 
-
-
-
-
 function SOTA_OpenDashboard()
 	DashboardUIFrame:Show();
 end
@@ -972,6 +970,11 @@ local EventTime = 0;
 local SOTA_TimerTick = 0;
 local SecondTimer = 0;
 Seconds = 0;
+SOTA_TimerStartTime = 0
+SOTA_TimerTimeDifference = 0
+SOTA_TimerCountSeconds = 0
+SOTA_TimerSecondCounter = 0
+SOTA_TimerDKPAwarded = 0
 
 --	Timer job: { method, duration }
 local SOTA_GeneralTimers = { }
@@ -1010,7 +1013,43 @@ function SOTA_OnTimer(elapsed)
 			timer[1]();
 		end
 	end
-	
+
+	if SOTA_TimerCountSeconds == 1 then
+		SOTA_TimerTimeDifference = GetTime() - SOTA_TimerInitialTime
+		if SOTA_TimerTimeDifference >= 1 then
+			SOTA_TimerSecondCounter = SOTA_TimerSecondCounter + SOTA_TimerTimeDifference
+			local timer_seconds = floor(math.mod(SOTA_TimerSecondCounter,60))
+			local timer_secondsstr = timer_seconds
+			if timer_seconds < 10 then timer_secondsstr = "0" ..timer_seconds end
+			getglobal("SOTA_TimerSecond"):SetText(timer_secondsstr)
+
+			if timer_seconds == 0 then
+				local timer_minutes = floor(math.mod(SOTA_TimerSecondCounter/60, 60))
+				local timer_minutesstr = timer_minutes .. ":"
+				if timer_minutes < 10 then timer_minutesstr = "0" ..timer_minutes ..":" end
+				getglobal("SOTA_TimerMinute"):SetText(timer_minutesstr)
+
+				if timer_minutes == 0 then
+					local timer_hours = floor(math.mod(SOTA_TimerSecondCounter/3600, 60))
+					local timer_hoursstr = timer_hours .. ":"
+					if timer_hours < 10 then timer_hoursstr = "0" ..timer_hours .. ":" end
+					getglobal("SOTA_TimerHour"):SetText(timer_hoursstr)
+				end
+				if math.mod(timer_minutes, SOTA_CONFIG_TimeFramePerDKP) == 0 then
+					local server_hour, server_minute = GetGameTime()
+					if server_hour >= 23 or server_hour < 2 then 
+						SOTA_Call_AddRaidDKP(2 * SOTA_CONFIG_DKPPerTime, 1)
+						SOTA_TimerDKPAwarded = SOTA_TimerDKPAwarded + 2 * SOTA_CONFIG_DKPPerTime
+					else
+						SOTA_Call_AddRaidDKP(SOTA_CONFIG_DKPPerTime, 1)
+						SOTA_TimerDKPAwarded = SOTA_TimerDKPAwarded + SOTA_CONFIG_DKPPerTime
+					end
+					getglobal("SOTA_TimerDKP"):SetText("+" .. SOTA_TimerDKPAwarded)
+				end
+			end
+			SOTA_TimerInitialTime = GetTime()
+		end
+	end
 end
 
 function SOTA_OnSecondTimer()
@@ -1226,18 +1265,19 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 		end
 	end	
 
-	if not (AuctionState == STATE_AUCTION_RUNNING) then
+	if AuctionState ~= STATE_AUCTION_RUNNING then
 		whisper(sender, "There is currently no auction running - bid was ignored.", identifier);
 		return;
-	end	
+	end
 
 	dkp = 1 * dkp
-	if minimumBid ~= SOTA_CONFIG_MinimumStartingBid then
-		if dkp < minimumBid then
-			whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
-			return;
-		end
 
+	if dkp < minimumBid then
+		whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
+		return;
+	end
+
+	if minimumBid ~= SOTA_CONFIG_MinimumStartingBid then
 		if availableDkp <= dkp then
 			if availableDkp >= 0 then
 				whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
@@ -1248,7 +1288,7 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 			end
 		end
 	end
-	
+
 	-- only allow bid that are multiples of 5
 	--if SOTA_CONFIG_MinimumBidStrategy == 1 and math.mod(dkp,5) ~= 0 then
 		--whisper(sender, "Your bid must be a multiple of 5 - bid was ignored.");
@@ -1772,6 +1812,7 @@ function SOTA_CloseTransactionDetails()
 end
 
 function SOTA_OpenConfigurationUI()
+	SOTA_RefreshCheckboxes();
 	SOTA_RefreshBossDKPValues();
 	SOTA_RefreshSliders();
 	SOTA_OpenConfigurationFrame1();
@@ -1784,6 +1825,8 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionMSoverOSPriority:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
+	ConfigurationFrameOptionTimeFramePerDKP:Hide();
+	ConfigurationFrameOptionDKPPerTime:Hide();
 	ConfigurationFrameOptionDKPPerRaider:Hide();
 	ConfigurationFrameOptionMinimumStartingBid:Hide();
 	-- ConfigurationFrame2:
@@ -1815,6 +1858,8 @@ function SOTA_OpenConfigurationFrame1()
 	ConfigurationFrameOptionMSoverOSPriority:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
+	ConfigurationFrameOptionTimeFramePerDKP:Show();
+	ConfigurationFrameOptionDKPPerTime:Show();
 	ConfigurationFrameOptionDKPPerRaider:Show();
 	ConfigurationFrameOptionMinimumStartingBid:Show();
 	
@@ -2726,11 +2771,12 @@ end
 --[[
 --	Add <n> DKP to all players in raid and in queue
 --]]
-function SOTA_Call_AddRaidDKP(dkp)
+function SOTA_Call_AddRaidDKP(dkp, silentmode)
+	silentmode = silentmode or 0
 	if SOTA_IsInRaid(true) then
 		RaidState = RAID_STATE_ENABLED;
 		SOTA_RequestMaster();
-		SOTA_AddJob( function(job) SOTA_AddRaidDKP(job[2]) end, dkp, "_" )
+		SOTA_AddJob( function(job) SOTA_AddRaidDKP(job[2], silentmode) end, dkp, silentmode )
 		SOTA_RequestUpdateGuildRoster();
 	end
 end
@@ -2778,7 +2824,7 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 			end
 		end
 		
-		if not silentmode then
+		if silentmode == 0 then
 			SOTA_rwEcho(string.format("%d DKP was added to all players in raid", dkp));
 		end
 		
@@ -3958,23 +4004,23 @@ function SOTA_HandleCheckbox(checkbox)
 end
 
 function SOTA_CheckboxChecker(checkbox)
-	local checkboxname = checkbox:GetName();
+	local checkboxname = checkbox:GetName() or "UpdateAll";
 	--echo(string.format("Checkbox: %s", checkboxname))
 
 	--	Enable MS>OS priority:		
-	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
+	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" or checkboxname == "UpdateAll" then
 		checkbox:SetChecked(SOTA_CONFIG_EnableOSBidding);
 		return;
 	end
 		
 	--	Enable RQ Zonecheck:		
-	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
+	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" or checkboxname == "UpdateAll" then
 		checkbox:SetChecked(SOTA_CONFIG_EnableZonecheck);
 		return;
 	end
 
 	--	Disable Dashboard:		
-	if checkboxname == "ConfigurationFrameOptionDisableDashboard" then
+	if checkboxname == "ConfigurationFrameOptionDisableDashboard" or checkboxname == "UpdateAll" then
 		checkbox:SetChecked(SOTA_CONFIG_DisableDashboard);
 		if SOTA_CONFIG_DisableDashboard then
 			SOTA_CloseDashboard(); 
@@ -3983,28 +4029,47 @@ function SOTA_CheckboxChecker(checkbox)
 	end
 	
 	--	Store DKP in Public Notes:		
-	if checkboxname == "ConfigurationFrameOptionPublicNotes" then
+	if checkboxname == "ConfigurationFrameOptionPublicNotes" or checkboxname == "UpdateAll" then
 		checkbox:SetChecked(SOTA_CONFIG_UseGuildNotes);
 		return;
 	end
 	
 	--	Bid type:
-	if checkboxname == "ConfigurationFrameOptionMinBidStrategy0" then
+	if checkboxname == "ConfigurationFrameOptionMinBidStrategy0" or checkboxname == "UpdateAll" then
 		if SOTA_CONFIG_MinimumBidStrategy == 0 then
 			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(1);
 		end
-	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy1" then
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy1" or checkboxname == "UpdateAll" then
 		if SOTA_CONFIG_MinimumBidStrategy == 1 then
 			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(1);
 		end
-	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy2" then
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy2" or checkboxname == "UpdateAll" then
 		if SOTA_CONFIG_MinimumBidStrategy == 2 then
 			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(1);
 		end
-	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy3" then
+	elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy3" or checkboxname == "UpdateAll" then
 		if SOTA_CONFIG_MinimumBidStrategy == 3 then
 			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(1);
 		end
+	end
+end
+
+function SOTA_RefreshCheckboxes()
+	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
+	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
+	getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(SOTA_CONFIG_UseGuildNotes);
+	if SOTA_CONFIG_MinimumBidStrategy == 0 then
+		getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(1);
+	end
+	if SOTA_CONFIG_MinimumBidStrategy == 1 then
+		getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(1);
+	end
+	if SOTA_CONFIG_MinimumBidStrategy == 2 then
+		getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(1);
+	end
+	if SOTA_CONFIG_MinimumBidStrategy == 3 then
+		getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(1);
 	end
 end
 
@@ -4177,6 +4242,26 @@ function SOTA_OnOptionDKPPerRaiderChanged(object)
 	getglobal(object:GetName().."Text"):SetText(string.format("DKP per raider per boss kill: %s", valueString))
 end
 
+function SOTA_OnOptionTimeFramePerDKPChanged(object)
+	SOTA_CONFIG_TimeFramePerDKP = tonumber( getglobal(object:GetName()):GetValue() );
+	
+	local valueString = "".. SOTA_CONFIG_TimeFramePerDKP;
+	
+	getglobal(object:GetName().."Text"):SetText(string.format("Time frame for DKP per raider: %s minutes", valueString))
+	getglobal("ConfigurationFrameOptionDKPPerTime" .. "Text"):SetText(string.format("DKP per raider per %s minutes: %s", valueString, SOTA_CONFIG_DKPPerTime))
+end
+
+function SOTA_OnOptionDKPPerTimeChanged(object)
+	SOTA_CONFIG_DKPPerTime = tonumber( getglobal(object:GetName()):GetValue() );
+	
+	local valueString = "".. SOTA_CONFIG_DKPPerTime;
+	if SOTA_CONFIG_DKPPerTime == 0 then
+		valueString = "(None)";
+	end
+	
+	getglobal(object:GetName().."Text"):SetText(string.format("DKP per raider per %s minutes: %s", SOTA_CONFIG_TimeFramePerDKP, valueString))
+end
+
 function SOTA_OnOptionBossDKPChanged(object)
 	local slider = object:GetName();
 	local value = tonumber( getglobal(object:GetName()):GetValue() );
@@ -4219,6 +4304,8 @@ function SOTA_RefreshBossDKPValues()
 end
 
 function SOTA_RefreshSliders()
+	getglobal("ConfigurationFrameOptionTimeFramePerDKP"):SetValue(SOTA_CONFIG_TimeFramePerDKP);
+	getglobal("ConfigurationFrameOptionDKPPerTime"):SetValue(SOTA_CONFIG_DKPPerTime);
 	getglobal("ConfigurationFrameOptionDKPPerRaider"):SetValue(SOTA_CONFIG_DKPPerRaider);
 	getglobal("ConfigurationFrameOptionMinimumStartingBid"):SetValue(SOTA_CONFIG_MinimumStartingBid);
 end
@@ -4969,6 +5056,8 @@ function SOTA_InitializeConfigSettings()
 	getglobal("ConfigurationFrameOptionMinimumDKPPenalty"):SetValue(SOTA_CONFIG_MinimumDKPPenalty);
 	getglobal("ConfigurationFrameOptionAuctionTime"):SetValue(SOTA_CONFIG_AuctionTime);
 	getglobal("ConfigurationFrameOptionAuctionExtension"):SetValue(SOTA_CONFIG_AuctionExtension);
+	getglobal("ConfigurationFrameOptionTimeFramePerDKP"):SetValue(SOTA_CONFIG_TimeFramePerDKP);
+	getglobal("ConfigurationFrameOptionDKPPerTime"):SetValue(SOTA_CONFIG_DKPPerTime);
 	getglobal("ConfigurationFrameOptionDKPPerRaider"):SetValue(SOTA_CONFIG_DKPPerRaider);
 	getglobal("ConfigurationFrameOptionMinimumStartingBid"):SetValue(SOTA_CONFIG_MinimumStartingBid);
 	
@@ -5025,3 +5114,25 @@ function SOTA_OnLoad()
 	end	
 end
 
+function SOTA_PlayButtonOnClick()
+	SOTA_TimerCountSeconds = 1
+	SOTA_TimerInitialTime = GetTime()
+	getglobal("DashboardUIFrameItemPlayButton"):Hide()
+	getglobal("DashboardUIFrameItemPauseButton"):Show()
+end
+
+function SOTA_PauseButtonOnClick()
+	SOTA_TimerCountSeconds = 0
+	getglobal("DashboardUIFrameItemPauseButton"):Hide()
+	getglobal("DashboardUIFrameItemPlayButton"):Show()
+end
+
+function SOTA_ResetButtonOnClick()
+	SOTA_TimerSecondCounter = 0
+	SOTA_TimerDKPAwarded = 0
+	SOTA_PauseButtonOnClick()
+	getglobal("SOTA_TimerSecond"):SetText("00")
+	getglobal("SOTA_TimerMinute"):SetText("00:")
+	getglobal("SOTA_TimerHour"):SetText("00:")
+	getglobal("SOTA_TimerDKP"):SetText("+" .. SOTA_TimerDKPAwarded)
+end
