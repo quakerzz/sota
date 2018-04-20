@@ -1287,6 +1287,11 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 				return;
 			end
 		end
+	else
+		if (dkp > SOTA_CONFIG_MinimumStartingBid) and (availableDkp <= dkp) then
+			whisper(sender, string.format("You have don't have enough DKP: %d - you can only bid the minimum price.", availableDkp), identifier);
+			return
+		end
 	end
 
 	-- only allow bid that are multiples of 5
@@ -4248,7 +4253,6 @@ function SOTA_OnOptionTimeFramePerDKPChanged(object)
 	local valueString = "".. SOTA_CONFIG_TimeFramePerDKP;
 	
 	getglobal(object:GetName().."Text"):SetText(string.format("Time frame for DKP per raider: %s minutes", valueString))
-	getglobal("ConfigurationFrameOptionDKPPerTime" .. "Text"):SetText(string.format("DKP per raider per %s minutes: %s", valueString, SOTA_CONFIG_DKPPerTime))
 end
 
 function SOTA_OnOptionDKPPerTimeChanged(object)
@@ -4259,7 +4263,7 @@ function SOTA_OnOptionDKPPerTimeChanged(object)
 		valueString = "(None)";
 	end
 	
-	getglobal(object:GetName().."Text"):SetText(string.format("DKP per raider per %s minutes: %s", SOTA_CONFIG_TimeFramePerDKP, valueString))
+	getglobal(object:GetName().."Text"):SetText(string.format("DKP per raider per time frame: %s", valueString))
 end
 
 function SOTA_OnOptionBossDKPChanged(object)
