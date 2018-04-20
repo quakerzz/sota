@@ -1278,7 +1278,7 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	end
 
 	if minimumBid ~= SOTA_CONFIG_MinimumStartingBid then
-		if availableDkp <= dkp then
+		if availableDkp < dkp then
 			if availableDkp >= 0 then
 				whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
 				return;
@@ -1288,7 +1288,7 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 			end
 		end
 	else
-		if (dkp > SOTA_CONFIG_MinimumStartingBid) and (availableDkp <= dkp) then
+		if (dkp > SOTA_CONFIG_MinimumStartingBid) and (availableDkp < dkp) then
 			whisper(sender, string.format("You have don't have enough DKP: %d - you can only bid the minimum price.", availableDkp), identifier);
 			return
 		end
