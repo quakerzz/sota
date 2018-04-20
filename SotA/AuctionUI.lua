@@ -544,7 +544,7 @@ function SOTA_HandleSOTACommand(msg)
 	--	Command: decay
 	--	Syntax: "decay <%d>[%]"
 	if cmd == "decay" then
-		return SOTA_Call_DecayDKP(arg);		
+		return SOTA_Call_DecayDKP(arg, 1);		
 	end
 
 
@@ -3081,8 +3081,9 @@ end
 --	Perform Guild Decay of <n>% DKP
 --	This function requires Show Offline Members to be enabled.
 --]]
-function SOTA_Call_DecayDKP(percent)
-	SOTA_AddJob( function(job) SOTA_DecayDKP(job[2]) end, percent, "_" )
+function SOTA_Call_DecayDKP(percent, silentmode)
+	silentmode = silentmode or 0
+	SOTA_AddJob( function(job) SOTA_DecayDKP(job[2], silentmode) end, percent, silentmode )
 	SOTA_RequestUpdateGuildRoster();
 end
 function SOTA_DecayDKP(percent, silentmode)
@@ -3095,9 +3096,7 @@ function SOTA_DecayDKP(percent, silentmode)
 	end
 	
 	if not tonumber(percent) then
-		if not silentmode then
-			gEcho("Guild Decay cancelled: Percent is not a valid number: ".. percent);
-		end
+		gEcho("Guild Decay cancelled: Percent is not a valid number: ".. percent);
 		return false;
 	end
 	
@@ -3106,9 +3105,7 @@ function SOTA_DecayDKP(percent, silentmode)
 	--	This ensure the guild roster also contains Offline members.
 	--	Otherwise offline members will not get decayed!
 	if not GetGuildRosterShowOffline() == 1 then
-		if not silentmode then
-			gEcho("Guild Decay cancelled: You need to enable Offline Guild Members in the guild roster first.")
-		end
+		gEcho("Guild Decay cancelled: You need to enable Offline Guild Members in the guild roster first.")
 		return false;
 	end
 
@@ -3152,9 +3149,12 @@ function SOTA_DecayDKP(percent, silentmode)
 		SOTA_UpdateLocalDKP(name, dkp);
 	end
 	
-	if not silentmode then
+	if silentmode == 0 then
 		guildEcho("Guild DKP decay by "..percent.."% was performed by ".. UnitName("player") ..".")
 		guildEcho("Guild DKP removed a total of "..reducedDkp.." DKP from ".. playerCount .." players.")
+	else 
+		gEcho("Guild DKP decay by "..percent.."% was performed by ".. UnitName("player") ..".")
+		gEcho("Guild DKP removed a total of "..reducedDkp.." DKP from ".. playerCount .." players.")
 	end
 	
 	SOTA_LogMultipleTransactions("-Decay", tidChanges)
