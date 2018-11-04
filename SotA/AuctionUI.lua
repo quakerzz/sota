@@ -31,7 +31,7 @@ SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_DKPPerRaider		= 10;
-SOTA_CONFIG_MinimumStartingBid	= 30;   -- Minimum DKP Starting bid
+SOTA_CONFIG_MinimumStartingBid	= 20;   -- Minimum DKP Starting bid
 SOTA_CONFIG_TimeFramePerDKP 	= 15;
 SOTA_CONFIG_DKPPerTime			= 20;
 
@@ -41,7 +41,7 @@ local SOTA_CONFIG_DEFAULT_BossDKP = {
 	{ "20Mans",			10 },
 	{ "MoltenCore",		10 },
 	{ "Onyxia",			10 },
-	{ "BlackwingLair",	10 },
+	{ "BlackwingLair",	15 },
 	{ "AQ40",			15 },
 	{ "Naxxramas",		15 },
 	{ "WorldBosses",	10 }
@@ -53,8 +53,8 @@ SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 -- Maximum Bid by Rank
-SocialMaxBid = 30;
-TrialMaxBid = 100;
+SocialMaxBid = 20;
+TrialMaxBid = 50;
 
 
 --	State machine:
@@ -1308,12 +1308,12 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	local bidderClass = playerInfo[3];
 	local bidderRank  = playerInfo[4];
 
-	if bidderRank == "Social" and dkp > SocialMaxBid then
+	if bidderRank == "Social" and dkp > SocialMaxBid and SocialMaxBid > 0 then
 		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid), identifier);
 		return;
 	end
 
-	if bidderRank == "Trial Raider" and dkp > TrialMaxBid then
+	if bidderRank == "Trial" and dkp > TrialMaxBid and TrialMaxBid > 0 then
 		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid), identifier);
 		return;
 	end
