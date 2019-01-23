@@ -131,6 +131,7 @@ local SOTA_Master				= nil;		-- Current master
 -- Working variables:
 local RaidState					= RAID_STATE_DISABLED
 local AuctionedItemLink			= ""
+local AuctionedItemStartingPrice= 0
 local AuctionState				= STATE_NONE
 
 -- Raid Roster: table of raid players:		{ Name, DKP, Class, Rank, Online }
@@ -326,8 +327,10 @@ function SOTA_HandleSOTACommand(msg)
 	--	Command: <item>
 	--	Syntax: "<itemlink>"
 	local _, _, itemId = string.find(msg, "item:(%d+):")
+	local _, _, price = string.find(msg, "\124h\124r (%d+)")
+	local _, _, itemlink = string.find(msg, "(\124c.+\124r)")
 	if itemId then
-		return SOTA_StartAuction(msg);
+		return SOTA_StartAuction(itemlink, price);
 	end
 
 		
@@ -923,7 +926,7 @@ end
 	itemLink: a Blizzard itemlink to auction.
 	Since 0.0.1
 ]]
-function SOTA_StartAuction(itemLink)
+function SOTA_StartAuction(itemLink, price)
 	local rank = SOTA_GetRaidRank(UnitName("player"));
 	if rank < 1 then
 		gEcho("You need to be Raid Assistant or Raid Leader to start auctions.");
@@ -932,6 +935,11 @@ function SOTA_StartAuction(itemLink)
 
 
 	AuctionedItemLink = itemLink;
+	if price then
+		AuctionedItemStartingPrice = tonumber(price);
+	else
+		AuctionedItemStartingPrice = SOTA_CONFIG_MinimumStartingBid;
+	end
 	
 	--	Poor player, not only must be handle the bidding round but he is now also handling Invites!
 	SOTA_RequestMaster();
@@ -962,7 +970,7 @@ function SOTA_StartAuction(itemLink)
 	SOTA_UpdateBidElements();
 	SOTA_OpenAuctionUI();
 	SOTA_SetAuctionState(STATE_AUCTION_RUNNING, SOTA_CONFIG_AuctionTime);
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime .." " ..itemId .." " ..SOTA_CONFIG_MinimumStartingBid, "RAID")
+	SendAddonMessage(SOTA_MESSAGE_PREFIX, "SOTA_AUCTION_START " ..SOTA_CONFIG_AuctionTime .." " ..itemId .." " ..AuctionedItemStartingPrice, "RAID")
 end
 
 local GuildRefreshTimer = 0;
@@ -2513,7 +2521,7 @@ end
 --]]
 function SOTA_RestartAuction()
 	SOTA_SetAuctionState(STATE_NONE);		
-	SOTA_StartAuction(AuctionedItemLink);
+	SOTA_StartAuction(AuctionedItemLink, AuctionedItemStartingPrice);
 end
 
 
@@ -3732,7 +3740,13 @@ function SOTA_GetStartingDKP()
 	--end	
 
 	--return startingDKP;
-	return SOTA_CONFIG_MinimumStartingBid;
+	local minimumBid = 0;
+	if AuctionedItemStartingPrice == 0 then
+		minimumBid = SOTA_CONFIG_MinimumStartingBid
+	else
+		minimumBid = AuctionedItemStartingPrice
+	end
+	return minimumBid;
 end
 
 function SOTA_GetDKPPerBoss()
