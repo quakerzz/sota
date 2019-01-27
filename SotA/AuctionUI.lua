@@ -39,10 +39,10 @@ SOTA_CONFIG_DKPPerTime			= 20;
 SOTA_CONFIG_BossDKP				= { }
 local SOTA_CONFIG_DEFAULT_BossDKP = {
 	{ "20Mans",			10 },
-	{ "MoltenCore",		10 },
+	{ "MoltenCore",		5 },
 	{ "Onyxia",			10 },
-	{ "BlackwingLair",	15 },
-	{ "AQ40",			15 },
+	{ "BlackwingLair",	5 },
+	{ "AQ40",			10 },
 	{ "Naxxramas",		15 },
 	{ "WorldBosses",	10 }
 }
@@ -53,8 +53,8 @@ SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 -- Maximum Bid by Rank
-SocialMaxBid = 20;
-TrialMaxBid = 50;
+SocialMaxBid = 50;
+TrialMaxBid = 100;
 
 
 --	State machine:
