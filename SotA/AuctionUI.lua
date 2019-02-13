@@ -30,7 +30,7 @@ SOTA_CONFIG_AuctionExtension	= 8
 SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
-SOTA_CONFIG_DKPPerRaider		= 10;
+SOTA_CONFIG_DKPPerRaider		= 5;
 SOTA_CONFIG_MinimumStartingBid	= 20;   -- Minimum DKP Starting bid
 SOTA_CONFIG_TimeFramePerDKP 	= 15;
 SOTA_CONFIG_DKPPerTime			= 20;
@@ -131,7 +131,7 @@ local SOTA_Master				= nil;		-- Current master
 -- Working variables:
 local RaidState					= RAID_STATE_DISABLED
 local AuctionedItemLink			= ""
-local AuctionedItemStartingPrice= 0
+AuctionedItemStartingPrice 		= 0
 local AuctionState				= STATE_NONE
 
 -- Raid Roster: table of raid players:		{ Name, DKP, Class, Rank, Online }
@@ -3770,7 +3770,7 @@ function SOTA_GetDKPPerBoss()
 	
 	if zonetext == "Zul'Gurub" or zonetext == "Ruins of Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX >= 0.422)]] then
 		DKPPerBoss = SOTA_GetBossDKPValue("20Mans");				-- Verified
-	elseif zonetext == "Molten Core" then
+	elseif zonetext == "The Molten Core" then
 		DKPPerBoss = SOTA_GetBossDKPValue("MoltenCore");			-- Verified
 	elseif zonetext == "Onyxia's Lair" --[[or (zonetext == "Dustwallow Marsh" and subzone == "Wyrmbog")]] then
 		DKPPerBoss = SOTA_GetBossDKPValue("Onyxia");				-- Verified
