@@ -251,6 +251,9 @@ local function whisper(receiver, msg, identifier)
 	identifier = identifier or ""
 	if identifier == "DKPAuctionBidder" then
 		SendAddonMessage("SOTA_reply_DKPAuctionBidder", receiver ..msg, "RAID")
+		if SOTA_GetAuctionState() == STATE_AUCTION_RUNNING and receiver ~= UnitName("player") then
+			gEcho(COLOUR_INTRO..receiver..COLOUR_CHAT.. ": " .. msg)
+		end
 	else
 		if receiver == UnitName("player") then
 			gEcho(msg);
