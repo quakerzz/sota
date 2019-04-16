@@ -85,15 +85,29 @@
 		</Size>
 		<Layers>
 			<Layer>
+				<!-- Player number in list-->
+				<FontString name="$parentNumber" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="20" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="-2" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
 				<!-- Player name -->
 				<FontString name="$parentBidder" justifyH="LEFT" inherits="GameFontNormal">
 					<Size>
 						<AbsDimension x="100" y="16"/>
 					</Size>
 					<Anchors>
-						<Anchor point="LEFT">
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentNumber">
 							<Offset>
-								<AbsDimension x="4" y="0"/>
+								<AbsDimension x="15" y="0"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -111,7 +125,7 @@
 				<!-- Guild rank -->
 				<FontString name="$parentRank" justifyH="LEFT" inherits="GameFontNormal">
 					<Size>
-						<AbsDimension x="220" y="16"/>
+						<AbsDimension x="200" y="16"/>
 					</Size>
 					<Anchors>
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBid"/>
@@ -137,6 +151,12 @@
 		<NormalTexture name="$parentBG">
 			<Color r="0.0" g="0.0" b="0.5" a="0.5"/>
 		</NormalTexture>
+		<HighlightTexture name="$parentHL">
+			<Color r="1.0" g="0.9" b="0.0" a="0.3"/>
+		</HighlightTexture>
+		<PushedTexture name="$parentPU">
+			<Color r="1.0" g="0.9" b="0.0" a="0.3"/>
+		</PushedTexture>
 	</Button>
 
 	<!-- template for a Player entry in the RaidQueue -->
@@ -1029,7 +1049,7 @@
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
-									<AbsDimension x="16" y="-16" />
+									<AbsDimension x="16" y="-18" />
 								</Offset>
 							</Anchor>
 						</Anchors>
@@ -1054,6 +1074,16 @@
 						<FontString name="$parentItemName" inherits="GameFontNormal" font="Fonts\FRIZQT__.TTF" text="">
 							<Color r="" g="" b="" a="" />
 							<FontHeight val="20" />
+							<Size>
+								<AbsDimension x="334" y="50" />
+							</Size>
+							<Anchors>
+								<Anchor point="Left">
+									<Offset>
+										<AbsDimension x="80" y="0" />
+									</Offset>
+								</Anchor>
+							</Anchors>
 						</FontString>
 					</Layer>
 				</Layers>
@@ -1079,6 +1109,30 @@
 						<AbsValue val="16"/>
 					</TileSize>
 				</Backdrop>
+				<Frames>
+					<ScrollFrame name="$parentScrollFrame" inherits="FauxScrollFrameTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-8"/>
+						</Offset>
+						</Anchor>
+						<Anchor point="BOTTOMRIGHT">
+						<Offset>
+							<AbsDimension x="-30" y="8"/>
+						</Offset>
+						</Anchor>
+					</Anchors>
+    		    	<Scripts>
+    		    	  <OnVerticalScroll>
+    		    	    FauxScrollFrame_OnVerticalScroll(16, SOTA_ScrollBarUpdate);
+    		    	  </OnVerticalScroll>
+    		    	  <OnShow>
+    		    	    SOTA_ScrollBarUpdate();
+    		    	  </OnShow>
+    		    	</Scripts>
+					</ScrollFrame>
+				</Frames>
 			</Frame>
 
 			<!-- Selected Bid frame -->
@@ -1544,7 +1598,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Enable OS bidding (MS>OS) ? -->
-			<CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
+			<!-- <CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-198"/>
@@ -1559,7 +1613,7 @@
 						SOTA_HandleCheckbox(this);
 					</OnClick>
 				</Scripts>
-			</CheckButton>
+			</CheckButton> -->
 			<!-- Enable Zone Check for Raid Queue -->
 			<CheckButton name="ConfigurationFrameOptionEnableZonecheck" inherits="OptionsCheckButtonTemplate">
 				<Anchors>

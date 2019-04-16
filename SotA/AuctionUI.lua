@@ -27,7 +27,7 @@ local WHISPER_CHANNEL			= "WHISPER"
 -- Pane 1:
 SOTA_CONFIG_AuctionTime			= 30
 SOTA_CONFIG_AuctionExtension	= 8
-SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
+SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS (now used to distinguish between valid and invalid bids effecftively removing this feature)
 SOTA_CONFIG_EnableZonecheck		= 0;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_DKPPerRaider		= 5;
@@ -75,7 +75,8 @@ local TransactionUIOpen			= false;
 local TransactionDetailsOpen	= false;
 
 -- Max # of bids shown in the AuctionUI
-local MAX_BIDS					= 10
+local MAX_BIDS					= 40
+local MAX_BIDS_SHOWN			= 10
 -- List of valid bids: { Name, DKP, BidType(MS=1,OS=2), Class, Rank }
 local IncomingBidsTable			= { };
 
@@ -471,7 +472,8 @@ function SOTA_HandleSOTACommand(msg)
 	
 	--	Command: bid, os, ms
 	--	Syntax: "bid <%d>", "bid min", "bid max"
-	if cmd == "bid" or cmd == "ms" or cmd == "os" then
+	-- if cmd == "bid" or cmd == "ms" or cmd == "os" then
+	if cmd == "bid" or cmd == "ms" then
 		return SOTA_HandlePlayerBid(playername, msg);
 	end
 	
@@ -1195,7 +1197,8 @@ function SOTA_OnChatWhisper(event, message, sender)
 	end
 	cmd = string.lower(cmd);
 	
-	if cmd == "bid" or cmd == "os" or cmd == "ms" then
+	-- if cmd == "bid" or cmd == "os" or cmd == "ms" then
+	if cmd == "bid" or cmd == "ms" then
 		SOTA_HandlePlayerBid(sender, message);
 		
 	elseif cmd == "queue" then
@@ -1247,9 +1250,9 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	
 	if SOTA_CONFIG_EnableOSBidding == 1 then
 		bidtype = 1;
-		if cmd == "os" then
-			bidtype = 2;
-		end
+		-- if cmd == "os" then
+		-- 	bidtype = 2;
+		-- end
 	end
 
 	local minimumBid = SOTA_GetMinimumBid(bidtype);
@@ -1282,9 +1285,12 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	end
 
 	dkp = 1 * dkp
+	local bidderClass = playerInfo[3];
+	local bidderRank  = playerInfo[4];
 
 	if dkp < minimumBid then
 		whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid), identifier);
+		SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 		return;
 	end
 
@@ -1292,15 +1298,18 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 		if availableDkp < dkp then
 			if availableDkp >= 0 then
 				whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp), identifier);
+				SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 				return;
 			else
 				whisper(sender, string.format("You have negative DKP: %d - you can only bid the minimum price.", availableDkp), identifier);
+				SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 				return;
 			end
 		end
 	else
 		if (dkp > AuctionedItemStartingPrice) and (availableDkp < dkp) then
-			whisper(sender, string.format("You have don't have enough DKP: %d - you can only bid the minimum price.", availableDkp), identifier);
+			whisper(sender, string.format("You have don't have enough DKP to bid %d - you can only bid %d DKP.", dkp, availableDkp), identifier);
+			SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 			return
 		end
 	end
@@ -1316,16 +1325,17 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 		SendAddonMessage("SOTA_TIMER_SYNC", Seconds, "RAID")
 	end
 	
-	local bidderClass = playerInfo[3];
-	local bidderRank  = playerInfo[4];
+
 
 	if bidderRank == "Social" and dkp > SocialMaxBid and SocialMaxBid > 0 then
 		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid), identifier);
+		SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 		return;
 	end
 
 	if bidderRank == "Trial" and dkp > TrialMaxBid and TrialMaxBid > 0 then
 		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid), identifier);
+		SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
 		return;
 	end
 	
@@ -1360,7 +1370,7 @@ end
 function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank, identifier)
 	identifier = identifier or ""
 	if bidtype == 2 then
-		whisper(playername, string.format("Your Off-spec bid of %d DKP has been registered.", bid), identifier);
+		--whisper(playername, string.format("Your Off-spec bid of %d DKP has been registered.", bid), identifier);
 	else
 		whisper(playername, string.format("Your bid of %d DKP has been registered.", bid), identifier);
 	end
@@ -1387,7 +1397,9 @@ function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank, identifie
 	--end
  
 	SOTA_UpdateBidElements();
-	SendAddonMessage(SOTA_MESSAGE_PREFIX, "HIGHEST_BID" .." " ..IncomingBidsTable[1][2]  .." " ..IncomingBidsTable[1][1] .." " ..IncomingBidsTable[1][4], "RAID")
+	if bidtype == 1 then
+		SendAddonMessage(SOTA_MESSAGE_PREFIX, "HIGHEST_BID" .." " ..IncomingBidsTable[1][2]  .." " ..IncomingBidsTable[1][1] .." " ..IncomingBidsTable[1][4], "RAID")
+	end
 end
 
 
@@ -1838,7 +1850,7 @@ function SOTA_CloseConfigurationElements(headline)
 	-- ConfigurationFrame1:
 	ConfigurationFrameOptionAuctionTime:Hide();
 	ConfigurationFrameOptionAuctionExtension:Hide();
-	ConfigurationFrameOptionMSoverOSPriority:Hide();
+	--ConfigurationFrameOptionMSoverOSPriority:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
 	ConfigurationFrameOptionTimeFramePerDKP:Hide();
@@ -1871,7 +1883,7 @@ function SOTA_OpenConfigurationFrame1()
 	-- ConfigurationFrame1:
 	ConfigurationFrameOptionAuctionTime:Show();
 	ConfigurationFrameOptionAuctionExtension:Show();
-	ConfigurationFrameOptionMSoverOSPriority:Show();
+	--ConfigurationFrameOptionMSoverOSPriority:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
 	ConfigurationFrameOptionTimeFramePerDKP:Show();
@@ -1919,11 +1931,11 @@ end
 --]]
 function SOTA_InitializeTableElements()
 	--	Initialize top <n> bids
-	for n=1, MAX_BIDS, 1 do
-		local entry = CreateFrame("Button", "$parentEntry"..n, AuctionUIFrameTableList, "SOTA_BidTemplate");
+	for n=1, MAX_BIDS_SHOWN, 1 do
+		local entry = CreateFrame("Button", "$parentEntry"..n, AuctionUIFrameTableListScrollFrame, "SOTA_BidTemplate");
 		entry:SetID(n);
 		if n == 1 then
-			entry:SetPoint("TOPLEFT", 4, -4);
+			entry:SetPoint("TOPLEFT", 4, 4);
 		else
 			entry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
 		end
@@ -1990,29 +2002,33 @@ end
 
 --	Show top <n> in bid window
 function SOTA_UpdateBidElements()
-	local bidder, bid, playerclass, rank;
-	for n=1, MAX_BIDS, 1 do
+	local bidder, bid, playerclass, rank, number;
+	for n=1, MAX_BIDS_SHOWN, 1 do
 		if table.getn(IncomingBidsTable) < n then
 			bidder = "";
 			bid = "";
 			bidcolor = { 64, 255, 64 };
 			playerclass = "";
 			rank = "";
+			number = "";
 		else
 			local cbid = IncomingBidsTable[n];
 			bidder = cbid[1];
 			bidcolor = { 64, 255, 64 };
 			if cbid[3] == 2 then
-				bidcolor = { 255, 255, 96 };
+				bidcolor = { 220, 20, 60 };
 			end
 			bid = string.format("%d", cbid[2]);
 			playerclass = cbid[4];
 			rank = cbid[5];
+			number = n;
 		end
 
 		local color = SOTA_GetClassColorCodes(playerclass);
 
-		local frame = getglobal("AuctionUIFrameTableListEntry"..n);
+		local frame = getglobal("AuctionUIFrameTableListScrollFrameEntry"..n);
+		FauxScrollFrame_SetOffset(AuctionUIFrameTableListScrollFrame,0);
+		getglobal(frame:GetName().."Number"):SetText(number);
 		getglobal(frame:GetName().."Bidder"):SetText(bidder);
 		getglobal(frame:GetName().."Bidder"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
 		getglobal(frame:GetName().."Bid"):SetTextColor((bidcolor[1]/255), (bidcolor[2]/255), (bidcolor[3]/255), 255);
@@ -2021,6 +2037,56 @@ function SOTA_UpdateBidElements()
 
 		SOTA_RefreshButtonStates();
 		frame:Show();
+	end
+end
+
+function SOTA_ScrollBarUpdate()
+	FauxScrollFrame_Update(AuctionUIFrameTableListScrollFrame,MAX_BIDS,MAX_BIDS_SHOWN,16,
+	nil, nil, nil,                  -- button, smallWidth, bigWidth
+	nil,                            -- highlightFrame
+	0, 0);                          -- smallHighlightWidth, bigHighlightWidth
+	  -- 50 is max entries, 5 is number of lines, 16 is pixel height of each line
+	--local name, dkp, playerclass, rank, number;
+	local bidder, bid, playerclass, rank, number;
+	local nplusoffset;
+
+	for n=1,MAX_BIDS_SHOWN,1 do
+		nplusoffset = n + FauxScrollFrame_GetOffset(AuctionUIFrameTableListScrollFrame);
+		local frame = getglobal("AuctionUIFrameTableListScrollFrameEntry"..n);
+		if nplusoffset <= MAX_BIDS then
+			if table.getn(IncomingBidsTable) < nplusoffset then
+				bidder = "";
+				bid = "";
+				bidcolor = { 64, 255, 64 };
+				playerclass = "";
+				rank = "";
+				number = "";
+			else
+				local cbid = IncomingBidsTable[nplusoffset];
+				bidder = cbid[1];
+				bidcolor = { 64, 255, 64 };
+				if cbid[3] == 2 then
+					bidcolor = { 220, 20, 60 };
+				end
+				bid = string.format("%d", cbid[2]);
+				playerclass = cbid[4];
+				rank = cbid[5];
+				number = nplusoffset
+			end
+		
+			local color = SOTA_GetClassColorCodes(playerclass);
+			
+			getglobal(frame:GetName().."Number"):SetText(number);
+			getglobal(frame:GetName().."Bidder"):SetText(bidder);
+			getglobal(frame:GetName().."Bidder"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+			getglobal(frame:GetName().."Bid"):SetTextColor((bidcolor[1]/255), (bidcolor[2]/255), (bidcolor[3]/255), 255);
+			getglobal(frame:GetName().."Bid"):SetText(bid);
+			getglobal(frame:GetName().."Rank"):SetText(rank);
+		
+			frame:Show();
+		else			
+			frame:Hide();
+		end
 	end
 end
 
@@ -2548,8 +2614,8 @@ function SOTA_ShowSelectedPlayer(playername, bid)
 	else
 		bidder = bidInfo[1];
 		bid = string.format("%d", bidInfo[2]);
-		playerclass = bidInfo[3];
-		rank = bidInfo[4];
+		playerclass = bidInfo[4];
+		rank = bidInfo[5];
 	end
 	
 	local color = SOTA_GetClassColorCodes(playerclass);
@@ -2761,25 +2827,34 @@ function SOTA_Call_SubtractPlayerDKPPercent(playername, percent)
 end
 function SOTA_SubtractPlayerDKPPercent(playername, percent, silentmode)
 	playername = SOTA_UCFirst(playername);
-	local playerInfo = SOTA_GetGuildPlayerInfo(playername);
-	if playerInfo then
-		percent = 1 * percent;
-		local dkp = 1 * (playerInfo[2]);
-		local minus = floor(dkp * percent / 100);
-		if minus < SOTA_CONFIG_MinimumDKPPenalty then
-			minus = SOTA_CONFIG_MinimumDKPPenalty;
-		end
-		
-		SOTA_ApplyPlayerDKP(playername, -1 * minus, true);
-		
-		if not silentmode then
-			SOTA_rwEcho(string.format("%d %% (%d DKP) was subtracted from %s", percent, minus, playername));
-		end
-
-		SOTA_LogSingleTransaction("%Player", playername, -1 * abs(minus));
-	else
-		if not silentmode then
-			gEcho(string.format("Player %s was not found", playername));
+	local memberCount = GetNumGuildMembers()
+	local name, publicNote, officerNote, minus;
+	for n=1,memberCount,1 do
+		name, _, _, _, _, _, publicNote, officerNote = GetGuildRosterInfo(n);
+		if name == playername then
+			local note = officerNote;
+			if SOTA_CONFIG_UseGuildNotes == 1 then
+				note = publicNote;
+			end
+	
+			local _, _, dkp = string.find(note, "<(-?%d*)>");
+			if dkp and tonumber(dkp) then
+				minus = floor(dkp * percent / 100)
+				dkp = dkp - minus;
+				note = string.gsub(note, "<(-?%d*)>", SOTA_CreateDkpString(dkp), 1);
+			else
+				dkp = 0;
+				note = note..SOTA_CreateDkpString(dkp);
+			end
+			
+			if SOTA_CONFIG_UseGuildNotes == 1 then
+				GuildRosterSetPublicNote(n, note);
+			else
+				GuildRosterSetOfficerNote(n, note);
+			end
+			if not silentmode then
+				SOTA_rwEcho(string.format("%d %% (%d DKP) was subtracted from %s.", tonumber(percent), tonumber(minus), tostring(playername)));
+			end
 		end
 	end
 end
@@ -3115,7 +3190,7 @@ function SOTA_DecayDKP(percent, silentmode)
 
 	--	This ensure the guild roster also contains Offline members.
 	--	Otherwise offline members will not get decayed!
-	if not GetGuildRosterShowOffline() == 1 then
+	if not GetGuildRosterShowOffline() then
 		gEcho("Guild Decay cancelled: You need to enable Offline Guild Members in the guild roster first.")
 		return false;
 	end
@@ -3137,8 +3212,10 @@ function SOTA_DecayDKP(percent, silentmode)
 		end
 
 		local _, _, dkp = string.find(note, "<(-?%d*)>");
+		local dkp_before, minus;
 		if dkp and tonumber(dkp) then
-			local minus = floor(dkp * percent / 100)
+			dkp_before = dkp;
+			minus = floor(dkp * percent / 100)
 			tidChanges[tidIndex] = { name, (-1 * minus) }
 			tidIndex = tidIndex + 1
 			
@@ -3146,8 +3223,13 @@ function SOTA_DecayDKP(percent, silentmode)
 			reducedDkp = reducedDkp + minus;
 			playerCount = playerCount + 1;
 			note = string.gsub(note, "<(-?%d*)>", SOTA_CreateDkpString(dkp), 1);
+			if tonumber(dkp) ~= 0 then
+				gEcho(name .. ": " .. minus .. " (" .. tonumber(dkp_before) .. " DKP --> " .. tonumber(dkp) .. " DKP)");
+			end
 		else
 			dkp = 0;
+			dkp_before = 0;
+			minus = 0;
 			note = note..SOTA_CreateDkpString(dkp);
 		end
 		
@@ -3156,7 +3238,6 @@ function SOTA_DecayDKP(percent, silentmode)
 		else
 			GuildRosterSetOfficerNote(n, note);
 		end
-		
 		SOTA_UpdateLocalDKP(name, dkp);
 	end
 	
@@ -3169,7 +3250,7 @@ function SOTA_DecayDKP(percent, silentmode)
 	end
 	
 	SOTA_LogMultipleTransactions("-Decay", tidChanges)
-	
+
 	return true;
 end
 
@@ -3942,14 +4023,14 @@ function SOTA_HandleCheckbox(checkbox)
 	--echo(string.format("Checkbox: %s", checkboxname))
 
 	--	Enable MS>OS priority:		
-	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
-		if checkbox:GetChecked() then
-			SOTA_CONFIG_EnableOSBidding = 1;
-		else
-			SOTA_CONFIG_EnableOSBidding = 0;
-		end
-		return;
-	end
+	-- if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
+	-- 	if checkbox:GetChecked() then
+	-- 		SOTA_CONFIG_EnableOSBidding = 1;
+	-- 	else
+	-- 		SOTA_CONFIG_EnableOSBidding = 0;
+	-- 	end
+	-- 	return;
+	-- end
 		
 	--	Enable RQ Zonecheck:		
 	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
@@ -4030,10 +4111,10 @@ function SOTA_CheckboxChecker(checkbox)
 	--echo(string.format("Checkbox: %s", checkboxname))
 
 	--	Enable MS>OS priority:		
-	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" or checkboxname == "UpdateAll" then
-		checkbox:SetChecked(SOTA_CONFIG_EnableOSBidding);
-		return;
-	end
+	-- if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" or checkboxname == "UpdateAll" then
+	-- 	checkbox:SetChecked(SOTA_CONFIG_EnableOSBidding);
+	-- 	return;
+	-- end
 		
 	--	Enable RQ Zonecheck:		
 	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" or checkboxname == "UpdateAll" then
@@ -4077,7 +4158,7 @@ function SOTA_CheckboxChecker(checkbox)
 end
 
 function SOTA_RefreshCheckboxes()
-	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	--getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 	getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(SOTA_CONFIG_UseGuildNotes);
@@ -5048,9 +5129,9 @@ function SOTA_InitializeConfigSettings()
 	if not SOTA_CONFIG_DKPStringLength then
 		SOTA_CONFIG_DKPStringLength = 5;
 	end
-	if not SOTA_CONFIG_MinimumDKPPenalty then
-		SOTA_CONFIG_MinimumDKPPenalty = 50;
-	end
+	-- if not SOTA_CONFIG_MinimumDKPPenalty then
+	-- 	SOTA_CONFIG_MinimumDKPPenalty = 50;
+	-- end
 
 	-- Update GUI:
 	if not SOTA_CONFIG_EnableOSBidding then
@@ -5063,7 +5144,7 @@ function SOTA_InitializeConfigSettings()
 		SOTA_CONFIG_DisableDashboard = 1;
 	end
 	
-	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	--getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 
