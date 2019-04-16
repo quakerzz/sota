@@ -5137,9 +5137,9 @@ function SOTA_InitializeConfigSettings()
 	-- end
 
 	-- Update GUI:
-	if not SOTA_CONFIG_EnableMaxBidByRank then
-		SOTA_CONFIG_EnableMaxBidByRank = 1;
-	end
+	-- if not SOTA_CONFIG_EnableMaxBidByRank then
+	-- 	SOTA_CONFIG_EnableMaxBidByRank = 1;
+	-- end
 	if not SOTA_CONFIG_EnableZonecheck then
 		SOTA_CONFIG_EnableZonecheck = 1;
 	end
