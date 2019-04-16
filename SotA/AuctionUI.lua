@@ -53,8 +53,11 @@ SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 -- Maximum Bid by Rank
-SocialMaxBid = 50;
-TrialMaxBid = 100;
+SOTA_CONFIG_EnableMaxBidByRank 	= 1;
+SOTA_CONFIG_SocialRankName = "Social";
+SOTA_CONFIG_TrialRankName = "Trial";
+SOTA_CONFIG_SocialMaxBid = 50;
+SOTA_CONFIG_TrialMaxBid = 100;
 
 
 --	State machine:
@@ -1327,16 +1330,16 @@ function SOTA_HandlePlayerBid(sender, message, identifier)
 	
 
 
-	if bidderRank == "Social" and dkp > SocialMaxBid and SocialMaxBid > 0 then
-		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SocialMaxBid), identifier);
-		SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
-		return;
-	end
+	if SOTA_CONFIG_EnableMaxBidByRank == 1 then
+		if bidderRank == SOTA_CONFIG_SocialRankName and dkp > SOTA_CONFIG_SocialMaxBid and SOTA_CONFIG_SocialMaxBid > 0 then
+			whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SOTA_CONFIG_SocialMaxBid), identifier);
+			return;
+		end
 
-	if bidderRank == "Trial" and dkp > TrialMaxBid and TrialMaxBid > 0 then
-		whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, TrialMaxBid), identifier);
-		SOTA_RegisterBid(sender, dkp, 2, bidderClass, bidderRank, identifier);
-		return;
+		if bidderRank == SOTA_CONFIG_TrialRankName and dkp > SOTA_CONFIG_TrialMaxBid and SOTA_CONFIG_TrialMaxBid > 0 then
+			whisper(sender, string.format("Your maximum bid as a %s is %d - bid was ignored.", bidderRank, SOTA_CONFIG_TrialMaxBid), identifier);
+			return;
+		end
 	end
 	
 	if bidtype == 2 then
@@ -1850,7 +1853,7 @@ function SOTA_CloseConfigurationElements(headline)
 	-- ConfigurationFrame1:
 	ConfigurationFrameOptionAuctionTime:Hide();
 	ConfigurationFrameOptionAuctionExtension:Hide();
-	--ConfigurationFrameOptionMSoverOSPriority:Hide();
+	ConfigurationFrameOptionMaxBidByRank:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
 	ConfigurationFrameOptionTimeFramePerDKP:Hide();
@@ -1883,7 +1886,7 @@ function SOTA_OpenConfigurationFrame1()
 	-- ConfigurationFrame1:
 	ConfigurationFrameOptionAuctionTime:Show();
 	ConfigurationFrameOptionAuctionExtension:Show();
-	--ConfigurationFrameOptionMSoverOSPriority:Show();
+	ConfigurationFrameOptionMaxBidByRank:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
 	ConfigurationFrameOptionTimeFramePerDKP:Show();
@@ -4022,15 +4025,15 @@ function SOTA_HandleCheckbox(checkbox)
 	local checkboxname = checkbox:GetName();
 	--echo(string.format("Checkbox: %s", checkboxname))
 
-	--	Enable MS>OS priority:		
-	-- if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
-	-- 	if checkbox:GetChecked() then
-	-- 		SOTA_CONFIG_EnableOSBidding = 1;
-	-- 	else
-	-- 		SOTA_CONFIG_EnableOSBidding = 0;
-	-- 	end
-	-- 	return;
-	-- end
+	--	Enable Max Bid By Rank:		
+	if checkboxname == "ConfigurationFrameOptionMaxBidByRank" then
+		if checkbox:GetChecked() then
+			SOTA_CONFIG_EnableMaxBidByRank = 1;
+		else
+			SOTA_CONFIG_EnableMaxBidByRank = 0;
+		end
+		return;
+	end
 		
 	--	Enable RQ Zonecheck:		
 	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
@@ -4110,11 +4113,11 @@ function SOTA_CheckboxChecker(checkbox)
 	local checkboxname = checkbox:GetName() or "UpdateAll";
 	--echo(string.format("Checkbox: %s", checkboxname))
 
-	--	Enable MS>OS priority:		
-	-- if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" or checkboxname == "UpdateAll" then
-	-- 	checkbox:SetChecked(SOTA_CONFIG_EnableOSBidding);
-	-- 	return;
-	-- end
+	--	Enable Max Bid by Rank:		
+	if checkboxname == "ConfigurationFrameOptionMaxBidByRank" or checkboxname == "UpdateAll" then
+		checkbox:SetChecked(SOTA_CONFIG_EnableMaxBidByRank);
+		return;
+	end
 		
 	--	Enable RQ Zonecheck:		
 	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" or checkboxname == "UpdateAll" then
@@ -4158,7 +4161,7 @@ function SOTA_CheckboxChecker(checkbox)
 end
 
 function SOTA_RefreshCheckboxes()
-	--getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	getglobal("ConfigurationFrameOptionMaxBidByRank"):SetChecked(SOTA_CONFIG_EnableMaxBidByRank);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 	getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(SOTA_CONFIG_UseGuildNotes);
@@ -5134,8 +5137,8 @@ function SOTA_InitializeConfigSettings()
 	-- end
 
 	-- Update GUI:
-	if not SOTA_CONFIG_EnableOSBidding then
-		SOTA_CONFIG_EnableOSBidding = 1;
+	if not SOTA_CONFIG_EnableMaxBidByRank then
+		SOTA_CONFIG_EnableMaxBidByRank = 1;
 	end
 	if not SOTA_CONFIG_EnableZonecheck then
 		SOTA_CONFIG_EnableZonecheck = 1;
@@ -5144,7 +5147,7 @@ function SOTA_InitializeConfigSettings()
 		SOTA_CONFIG_DisableDashboard = 1;
 	end
 	
-	--getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	getglobal("ConfigurationFrameOptionMaxBidByRank"):SetChecked(SOTA_CONFIG_EnableMaxBidByRank);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 

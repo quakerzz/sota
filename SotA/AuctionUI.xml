@@ -1598,7 +1598,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Enable OS bidding (MS>OS) ? -->
-			<!-- <CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="ConfigurationFrameOptionMaxBidByRank" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-198"/>
@@ -1607,13 +1607,13 @@
 				<Scripts>
 					<OnLoad>
 						SOTA_CheckboxChecker(this)
-						getglobal(this:GetName().."Text"):SetText("Enable OS bidding (Mainspec over Offspec)")
+						getglobal(this:GetName().."Text"):SetText("Enable Maximum Bid by Rank")
 					</OnLoad>
 					<OnClick>
 						SOTA_HandleCheckbox(this);
 					</OnClick>
 				</Scripts>
-			</CheckButton> -->
+			</CheckButton>
 			<!-- Enable Zone Check for Raid Queue -->
 			<CheckButton name="ConfigurationFrameOptionEnableZonecheck" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
